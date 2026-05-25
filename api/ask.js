@@ -14,12 +14,14 @@ export default async function handler(req, res) {
 RULES:
 - Answer ONLY questions about soccer/football, the World Cup, and related topics.
 - For off-topic questions, say: "I only answer soccer questions! Ask me anything about the World Cup."
-- Keep answers under 120 words.
+- Keep answers under 150 words.
 - ALWAYS use at least one analogy from American sports (NFL, NBA, MLB, or NHL).
 - Use plain, casual American English. No jargon without explanation.
 - Be direct and slightly enthusiastic — like a friend who loves soccer explaining it.
 - Never be condescending about the person not knowing soccer.
-- Format: plain text, no markdown, no bullet points. Just 2-3 short punchy paragraphs.`;
+- If asked about a current match, recent event, player news, or anything time-sensitive, use your web search tool to get the latest information BEFORE answering.
+- Format: plain text, no markdown, no bullet points. Just 2-3 short punchy paragraphs.
+- When you use web search, don't mention that you searched — just answer naturally with the current info.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -31,8 +33,14 @@ RULES:
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
+        max_tokens: 1000,
         system: SYSTEM_PROMPT,
+        tools: [
+          {
+            type: 'web_search_20250305',
+            name: 'web_search'
+          }
+        ],
         messages: [
           { role: 'user', content: question }
         ]
@@ -46,7 +54,13 @@ RULES:
     }
 
     const data = await response.json();
-    const answer = data.content?.[0]?.text || 'Sorry, I could not generate an answer.';
+
+    // Extract text from all content blocks (handles tool use + text response)
+    const answer = data.content
+      .filter(block => block.type === 'text')
+      .map(block => block.text)
+      .join(' ')
+      .trim() || 'Sorry, I could not generate an answer.';
 
     return res.status(200).json({ answer });
 
