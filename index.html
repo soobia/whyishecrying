@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soccer Explained for Americans</title>
+<meta name="description" content="Confused by the World Cup? Get plain-English answers using NFL, NBA, and MLB analogies. No jargon, no condescension.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --green: #1a6b2f;
+    --green-light: #2d9e4a;
+    --green-dark: #0f4020;
+    --gold: #f5c518;
+    --white: #f7f5f0;
+    --off-white: #ede9e0;
+    --dark: #12100e;
+    --gray: #6b6560;
+    --border: #d4cfc5;
+    --red: #c0392b;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--green-dark);
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 28px,
+        rgba(255,255,255,0.03) 28px,
+        rgba(255,255,255,0.03) 29px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 28px,
+        rgba(255,255,255,0.03) 28px,
+        rgba(255,255,255,0.03) 29px
+      );
+    padding: 28px 24px 24px;
+    text-align: center;
+    border-bottom: 4px solid var(--gold);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '⚽';
+    position: absolute;
+    font-size: 180px;
+    opacity: 0.05;
+    top: -30px;
+    right: -20px;
+    line-height: 1;
+  }
+
+  .site-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 7vw, 4rem);
+    color: var(--white);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .site-title span { color: var(--gold); }
+
+  .site-tagline {
+    color: rgba(247,245,240,0.7);
+    font-size: 0.95rem;
+    margin-top: 8px;
+    font-weight: 400;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--green);
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+
+  nav a {
+    color: rgba(247,245,240,0.85);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 10px 18px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  nav a:hover, nav a.active {
+    background: rgba(0,0,0,0.25);
+    color: var(--gold);
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  /* ── CHAT TOOL ── */
+  .chat-intro {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--gold);
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--gray);
+  }
+
+  .chat-intro strong { color: var(--dark); }
+
+  .quick-questions {
+    margin-bottom: 24px;
+  }
+
+  .quick-questions p {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray);
+    margin-bottom: 10px;
+  }
+
+  .quick-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .quick-btn {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 0.83rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    color: var(--dark);
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+
+  .quick-btn:hover {
+    background: var(--green);
+    color: var(--white);
+    border-color: var(--green);
+  }
+
+  .chat-window {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    margin-bottom: 16px;
+  }
+
+  .chat-messages {
+    min-height: 200px;
+    max-height: 480px;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .message {
+    display: flex;
+    gap: 12px;
+    animation: fadeUp 0.25s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .message.user .message-avatar {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+  }
+
+  .message.assistant .message-avatar {
+    background: var(--green-dark);
+  }
+
+  .message-body {
+    flex: 1;
+  }
+
+  .message-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray);
+    margin-bottom: 4px;
+  }
+
+  .message-text {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--dark);
+  }
+
+  .message.user .message-text {
+    color: var(--gray);
+    font-style: italic;
+  }
+
+  .affiliate-card {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+    cursor: pointer;
+  }
+
+  .affiliate-card:hover {
+    border-color: var(--green);
+    background: #fff;
+  }
+
+  .affiliate-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .affiliate-text { flex: 1; }
+  .affiliate-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--dark);
+    display: block;
+  }
+  .affiliate-sub {
+    font-size: 0.78rem;
+    color: var(--gray);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .affiliate-cta {
+    background: var(--green);
+    color: var(--white);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .chat-footer {
+    border-top: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: var(--off-white);
+  }
+
+  .chat-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    resize: none;
+    min-height: 42px;
+    max-height: 100px;
+    background: #fff;
+    color: var(--dark);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .chat-input:focus { border-color: var(--green); }
+  .chat-input::placeholder { color: #b0aca5; }
+
+  .send-btn {
+    background: var(--green);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 0 18px;
+    height: 42px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .send-btn:hover { background: var(--green-light); }
+  .send-btn:disabled { background: var(--border); color: var(--gray); cursor: not-allowed; }
+
+  .question-counter {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--gray);
+    margin-top: 10px;
+  }
+
+  .question-counter span {
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  .limit-reached {
+    text-align: center;
+    padding: 20px;
+    background: var(--off-white);
+    border-top: 1px solid var(--border);
+  }
+
+  .limit-reached p {
+    font-size: 0.9rem;
+    color: var(--gray);
+    margin-bottom: 12px;
+  }
+
+  .kofi-btn {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--dark);
+    text-decoration: none;
+    padding: 9px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: opacity 0.15s;
+  }
+
+  .kofi-btn:hover { opacity: 0.85; }
+
+  /* typing indicator */
+  .typing {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 6px 0;
+  }
+
+  .typing span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: bounce 1.2s infinite;
+  }
+
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ── ARTICLES ── */
+  .articles-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .article-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px 24px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .article-card:hover {
+    border-color: var(--green);
+    box-shadow: 0 4px 12px rgba(26,107,47,0.1);
+  }
+
+  .article-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--green);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .article-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    color: var(--dark);
+    margin-bottom: 8px;
+    line-height: 1.1;
+  }
+
+  .article-excerpt {
+    font-size: 0.88rem;
+    color: var(--gray);
+    line-height: 1.6;
+  }
+
+  /* ── ARTICLE FULL ── */
+  .article-full { display: none; }
+  .article-full.active { display: block; }
+  .articles-list.hidden { display: none; }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--green);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .back-btn:hover { text-decoration: underline; }
+
+  .article-full h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    letter-spacing: 1.5px;
+    line-height: 1.05;
+    margin-bottom: 14px;
+  }
+
+  .article-full .article-body {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: #2a2520;
+  }
+
+  .article-full .article-body h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    margin: 28px 0 10px;
+    color: var(--green-dark);
+  }
+
+  .article-full .article-body p { margin-bottom: 16px; }
+
+  .article-full .article-body .analogy {
+    background: var(--off-white);
+    border-left: 3px solid var(--gold);
+    padding: 14px 18px;
+    border-radius: 0 6px 6px 0;
+    margin: 20px 0;
+    font-style: italic;
+    font-size: 0.93rem;
+    color: var(--gray);
+  }
+
+  /* ── ABOUT ── */
+  .about-section h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    color: var(--green-dark);
+  }
+
+  .about-section p {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: #2a2520;
+    margin-bottom: 16px;
+  }
+
+  /* ── CONTACT ── */
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 500px;
+  }
+
+  .contact-form input,
+  .contact-form textarea {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    background: #fff;
+    color: var(--dark);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .contact-form input:focus,
+  .contact-form textarea:focus { border-color: var(--green); }
+
+  .contact-form textarea { min-height: 120px; resize: vertical; }
+
+  .contact-form button {
+    background: var(--green);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 11px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: background 0.15s;
+  }
+
+  .contact-form button:hover { background: var(--green-light); }
+
+  /* ── PRIVACY ── */
+  .legal-body h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    margin: 24px 0 8px;
+    color: var(--green-dark);
+  }
+
+  .legal-body p, .legal-body ul {
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--gray);
+    margin-bottom: 12px;
+  }
+
+  .legal-body ul { padding-left: 20px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--green-dark);
+    color: rgba(247,245,240,0.55);
+    text-align: center;
+    padding: 22px 20px;
+    font-size: 0.78rem;
+    line-height: 1.7;
+  }
+
+  footer a { color: var(--gold); text-decoration: none; }
+
+  .kofi-float {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--gold);
+    color: var(--dark);
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    z-index: 100;
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .kofi-float:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+  }
+
+  @media (max-width: 600px) {
+    .quick-btns { gap: 6px; }
+    .quick-btn { font-size: 0.78rem; padding: 6px 12px; }
+    nav a { font-size: 0.75rem; padding: 9px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="site-title">Soccer <span>Explained</span> for Americans</div>
+  <div class="site-tagline">Plain-English answers using NFL, NBA & MLB analogies. No jargon, no condescension.</div>
+</header>
+
+<nav>
+  <a href="#" class="active" onclick="showPage('chat', this)">Ask a Question</a>
+  <a href="#" onclick="showPage('articles', this)">Explainers</a>
+  <a href="#" onclick="showPage('about', this)">About</a>
+  <a href="#" onclick="showPage('contact', this)">Contact</a>
+  <a href="#" onclick="showPage('privacy', this)">Privacy</a>
+</nav>
+
+<!-- ═══════════════ CHAT PAGE ═══════════════ -->
+<div id="page-chat" class="page active">
+  <div class="container">
+
+    <div class="chat-intro">
+      <strong>World Cup on and confused?</strong> Ask anything about football rules, moments, or drama.
+      You get <strong>3 free questions</strong> per session. Straight answers, American analogies.
+    </div>
+
+    <div class="quick-questions">
+      <p>Popular questions</p>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="askQuestion('What is offside?')">What is offside?</button>
+        <button class="quick-btn" onclick="askQuestion('How does VAR work?')">How does VAR work?</button>
+        <button class="quick-btn" onclick="askQuestion('What happens if tied after 90 minutes?')">Tied after 90 mins?</button>
+        <button class="quick-btn" onclick="askQuestion('Why do players fake injuries?')">Why fake injuries?</button>
+        <button class="quick-btn" onclick="askQuestion('What is a penalty shootout?')">Penalty shootout?</button>
+        <button class="quick-btn" onclick="askQuestion('How do group standings work?')">Group standings?</button>
+        <button class="quick-btn" onclick="askQuestion('What is stoppage time?')">Stoppage time?</button>
+        <button class="quick-btn" onclick="askQuestion('What is a red card?')">Red card?</button>
+      </div>
+    </div>
+
+    <div class="chat-window">
+      <div class="chat-messages" id="chatMessages">
+        <div class="message assistant">
+          <div class="message-avatar">⚽</div>
+          <div class="message-body">
+            <div class="message-label">Soccer Explainer</div>
+            <div class="message-text">
+              Hey! World Cup got you confused? I've got you. Ask me anything about the rules, the drama, or why everyone's screaming at the TV. I'll explain it using football, basketball, or baseball analogies so it actually makes sense.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="chatFooter" class="chat-footer">
+        <textarea
+          id="chatInput"
+          class="chat-input"
+          placeholder="e.g. Why did that goal get disallowed?"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">Ask →</button>
+      </div>
+
+      <div id="limitReached" class="limit-reached" style="display:none;">
+        <p>You've used your 3 free questions. Enjoying the tool? Drop a tip to unlock more sessions.</p>
+        <a href="https://ko-fi.com/YOUR_KOFI" target="_blank" rel="noopener" class="kofi-btn">☕ Buy me a coffee</a>
+      </div>
+    </div>
+
+    <div class="question-counter" id="questionCounter">
+      <span id="questionsLeft">3</span> free questions remaining this session
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ ARTICLES PAGE ═══════════════ -->
+<div id="page-articles" class="page">
+  <div class="container">
+
+    <div class="articles-list" id="articlesList">
+      <div class="articles-grid">
+
+        <div class="article-card" onclick="showArticle('offside')">
+          <span class="article-tag">The Rules</span>
+          <div class="article-title">Offside: The NFL Equivalent That Makes It Click</div>
+          <div class="article-excerpt">It's the call that causes more confusion than any other in soccer. Here's exactly how it works, using an analogy that every football fan will instantly understand.</div>
+        </div>
+
+        <div class="article-card" onclick="showArticle('var')">
+          <span class="article-tag">Technology</span>
+          <div class="article-title">VAR Explained: Instant Replay, But With More Drama</div>
+          <div class="article-excerpt">Video Assistant Referee technology — why it exists, when refs actually use it, and why it makes some moments take 10 minutes to resolve.</div>
+        </div>
+
+        <div class="article-card" onclick="showArticle('groups')">
+          <span class="article-tag">Tournament Format</span>
+          <div class="article-title">How Group Stage Standings Actually Work</div>
+          <div class="article-excerpt">Points, goal difference, tiebreakers — the World Cup group stage has a specific logic. Once you get it, tracking your team becomes genuinely exciting.</div>
+        </div>
+
+        <div class="article-card" onclick="showArticle('tiebreakers')">
+          <span class="article-tag">Tournament Format</span>
+          <div class="article-title">Extra Time, Penalties, and the Cruelest Tiebreaker in Sports</div>
+          <div class="article-excerpt">What happens when it's still tied after 90 minutes? Here's the sequence — and why a penalty shootout is uniquely brutal compared to anything in American sports.</div>
+        </div>
+
+        <div class="article-card" onclick="showArticle('rules')">
+          <span class="article-tag">Rules</span>
+          <div class="article-title">Five Recent Rule Changes You Need to Know for 2026</div>
+          <div class="article-excerpt">The rules of soccer aren't static. From handball rules to substitutions, here's what's changed in recent years that could affect the World Cup you're watching right now.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Individual Articles (hidden until clicked) -->
+    <div id="article-offside" class="article-full">
+      <button class="back-btn" onclick="showArticleList()">← Back to Explainers</button>
+      <h1>Offside: The NFL Equivalent That Makes It Click</h1>
+      <div class="article-body">
+        <p>Offside is the most complained-about call in soccer, and it's also the most misunderstood. Here's the version that will make you nod your head.</p>
+        <h2>The Simple Version</h2>
+        <p>When a teammate passes you the ball, you cannot be ahead of the last defender (not counting the goalkeeper) at the moment the ball is kicked. You have to be "onside" — even with or behind that last defender — when your teammate's foot hits the ball.</p>
+        <div class="analogy">Think of it like a forward pass in the NFL. You can't catch a pass if you're behind the line of scrimmage — but in reverse. In soccer, you can't receive a pass if you're too far <em>forward</em>, ahead of the defense. The line is the last defender, not a painted line on the field.</div>
+        <h2>What It Is Not</h2>
+        <p>Offside is NOT called when you receive the ball directly from a corner kick, throw-in, or goal kick. It's also not about where you are the whole game — only where you are the instant the ball is kicked to you.</p>
+        <h2>Why It Causes So Much Controversy</h2>
+        <p>With VAR technology, referees can review whether a player's shoulder, armpit, or big toe was a few inches offside. This leads to goals being disallowed by margins so small they require a freeze-frame and drawn lines to see. It is technically correct. It is also maddening.</p>
+      </div>
+    </div>
+
+    <div id="article-var" class="article-full">
+      <button class="back-btn" onclick="showArticleList()">← Back to Explainers</button>
+      <h1>VAR: Instant Replay, But With More Drama</h1>
+      <div class="article-body">
+        <p>VAR stands for Video Assistant Referee. It was introduced to catch clear errors in four specific situations: goals, penalty kicks, red cards, and mistaken identity.</p>
+        <h2>How It Works</h2>
+        <p>A separate team of officials in a video review room watches the game on multiple camera feeds. If they spot a potential error in one of those four categories, they can alert the on-field referee. The referee can then review the footage on a pitch-side monitor or simply accept the VAR team's recommendation.</p>
+        <div class="analogy">It's almost identical to NFL instant replay review — except in the NFL, coaches can throw the red flag to trigger it. In soccer, only the VAR officials can initiate a review. The on-field referee can also choose to go look at the monitor, like an NFL official going under the hood.</div>
+        <h2>Why It Takes So Long</h2>
+        <p>VAR pauses are frustrating because soccer has no natural stoppages like American sports. The referee has to halt an active game while the review happens. And because the technology can zoom in to pixel-level detail on offside calls, a 15-second play can trigger a 3-minute review.</p>
+        <h2>The Controversy</h2>
+        <p>The debate isn't really about the technology — it's about where to draw the line. Stopping a game for 4 minutes to rule a goal offside by a player's armpit is technically correct but ruins the experience. FIFA continues to adjust the guidelines.</p>
+      </div>
+    </div>
+
+    <div id="article-groups" class="article-full">
+      <button class="back-btn" onclick="showArticleList()">← Back to Explainers</button>
+      <h1>How Group Stage Standings Work</h1>
+      <div class="article-body">
+        <p>The World Cup starts with a group stage: 32 teams split into 8 groups of 4. Every team plays the other 3 teams in their group once. The top 2 from each group advance to the knockout rounds.</p>
+        <h2>The Points System</h2>
+        <p>Win = 3 points. Draw = 1 point each. Loss = 0 points. After 3 games, the two teams with the most points advance. Simple — until you get a tie.</p>
+        <div class="analogy">It's exactly like the NFL's conference standings at the end of the regular season — except compressed into 3 games per team. You want wins, you'll take ties, losses hurt bad.</div>
+        <h2>Tiebreakers</h2>
+        <p>If two teams finish with the same points, the tiebreaker order is: (1) Goal difference — how many more goals you scored than allowed. (2) Total goals scored. (3) Head-to-head record. (4) Head-to-head goal difference. Then it gets into fair play points (yellow and red card counts), and ultimately a drawing of lots.</p>
+        <h2>Why a 0-0 Draw Can Be a Great Result</h2>
+        <p>A draw gives both teams a point. If you're the underdog against a powerhouse, earning a point against them while the other two teams in your group play each other can be a tournament-saving result. Context matters enormously in the group stage.</p>
+      </div>
+    </div>
+
+    <div id="article-tiebreakers" class="article-full">
+      <button class="back-btn" onclick="showArticleList()">← Back to Explainers</button>
+      <h1>Extra Time, Penalties, and the Cruelest Tiebreaker in Sports</h1>
+      <div class="article-body">
+        <p>Once you're in the knockout rounds, there's no such thing as a draw. Someone has to go home. Here's what happens.</p>
+        <h2>Extra Time (30 Minutes)</h2>
+        <p>If it's still tied after 90 minutes, both teams play two additional 15-minute periods — 30 minutes total. Players are exhausted. Cramps are everywhere. Substitutions are used strategically to get fresher legs on the field.</p>
+        <div class="analogy">Think of it like NFL overtime — except it's 30 minutes, both teams have full possession, and there's no "sudden death" in extra time. You play all 30 minutes unless someone scores. If someone scores in extra time, they win. If still tied after 30 minutes: penalty shootout.</div>
+        <h2>The Penalty Shootout</h2>
+        <p>Each team picks 5 players. They take turns shooting from the penalty spot (12 yards from goal) with only the goalkeeper to beat. Whoever scores more of their 5 kicks wins. If still tied after 5 each, it goes to sudden death — alternating kicks until one team misses and the other scores.</p>
+        <h2>Why It's So Brutal</h2>
+        <p>A penalty kick is converted roughly 75-80% of the time under normal conditions. Under World Cup knockout pressure, with 60,000 people watching and your country's elimination on the line, that number drops. The goalkeeper guessing the wrong way, a slight mistrike, nerves — any of it ends your tournament. It is the purest high-pressure moment in team sports, decided essentially by individuals.</p>
+      </div>
+    </div>
+
+    <div id="article-rules" class="article-full">
+      <button class="back-btn" onclick="showArticleList()">← Back to Explainers</button>
+      <h1>Five Rule Changes You Need to Know for 2026</h1>
+      <div class="article-body">
+        <p>Soccer's rules are governed by IFAB (International Football Association Board), not FIFA. They update the Laws of the Game regularly. Here are the changes most relevant to watching the 2026 World Cup.</p>
+        <h2>1. Five Substitutions Per Game</h2>
+        <p>For most of soccer history, teams could make only 3 substitutions per match. That changed during COVID and stuck. Teams can now make up to 5 substitutions, with a maximum of 3 stoppages to do so (plus halftime). This significantly changes late-game tactics and squad management.</p>
+        <h2>2. Handball Rule Clarification</h2>
+        <p>If a goal is scored immediately after the ball accidentally touches an attacker's hand or arm — even if the player didn't intend it — the goal is disallowed. "Unintentional" no longer gets you off the hook if you benefit directly.</p>
+        <h2>3. Encroachment on Penalties</h2>
+        <p>If a goalkeeper moves off their line too early during a penalty and the kick is missed, the kick is retaken. This is now enforced much more strictly with VAR. It has led to several high-profile penalty retakes.</p>
+        <h2>4. Concussion Substitutions</h2>
+        <p>Teams now get an additional substitution specifically for suspected concussions, which does not count against their 5-sub allowance. It's a significant player safety improvement.</p>
+        <h2>5. Time-Wasting Crackdown</h2>
+        <p>Goalkeepers are now limited to 8 seconds when holding the ball (down from 6, though enforcement was previously lax). Referees are also instructed to add more accurate stoppage time — which is why you're seeing 10+ minutes of added time in matches where previously it might have been 4 or 5.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ ABOUT PAGE ═══════════════ -->
+<div id="page-about" class="page">
+  <div class="container">
+    <div class="about-section">
+      <h2>What This Is</h2>
+      <p>Soccer Explained for Americans was built for one reason: the World Cup is the biggest sporting event on the planet, and millions of Americans are watching with basically no idea what's going on.</p>
+      <p>Not because they're not sports fans — most of them are hardcore NFL, NBA, or MLB fans — but because soccer has its own vocabulary, its own rules quirks, and its own unwritten culture that nobody explained to them.</p>
+      <p>This tool fixes that. Ask any question, get a plain-English answer using analogies from American sports you already understand. No condescension, no jargon.</p>
+      <h2>How It Works</h2>
+      <p>The AI answering your questions is powered by Claude (made by Anthropic). It's been specifically prompted to give concise, analogy-first answers for American first-time fans. You get 3 free questions per session.</p>
+      <h2>Affiliate Disclosure</h2>
+      <p>This site includes affiliate links to services like FuboTV, Amazon, and StubHub. If you click and sign up or purchase, we may earn a small commission at no extra cost to you. These links help keep the tool free.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CONTACT PAGE ═══════════════ -->
+<div id="page-contact" class="page">
+  <div class="container">
+    <div class="about-section">
+      <h2>Get In Touch</h2>
+      <p>Found an error? Have a suggestion? Want to tell us a rule was explained badly? We want to hear it.</p>
+      <form class="contact-form" onsubmit="handleContactSubmit(event)">
+        <input type="text" placeholder="Your name" required>
+        <input type="email" placeholder="Your email" required>
+        <textarea placeholder="Your message"></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+      <p id="contactSuccess" style="display:none; margin-top:14px; color: var(--green); font-weight:600;">Thanks! We'll get back to you.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PRIVACY PAGE ═══════════════ -->
+<div id="page-privacy" class="page">
+  <div class="container">
+    <div class="legal-body">
+      <h2>Privacy Policy</h2>
+      <p>Last updated: 2026</p>
+      <h2>What We Collect</h2>
+      <ul>
+        <li>Questions you submit to the AI tool (processed by Anthropic's API, not stored by us)</li>
+        <li>Standard web analytics (page views, referral sources) via Google Analytics if enabled</li>
+        <li>No account, no registration, no persistent personal data collected</li>
+      </ul>
+      <h2>Cookies</h2>
+      <p>We use session storage to count your free questions. This does not persist across sessions and contains no personal information. If Google AdSense or Google Analytics is enabled, those services set their own cookies per Google's privacy policy.</p>
+      <h2>Affiliate Links</h2>
+      <p>This site contains affiliate links to third-party services (FuboTV, Amazon Associates, StubHub). Clicking these links may set cookies on third-party sites. We receive a commission if you complete a purchase or signup. We are not responsible for the privacy practices of those third-party sites.</p>
+      <h2>Third-Party APIs</h2>
+      <p>Questions submitted to the AI tool are sent to Anthropic's API. Anthropic's privacy policy applies to that data. We do not log or store the content of your questions on our servers.</p>
+      <h2>Contact</h2>
+      <p>Questions about this privacy policy? Use the Contact page.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <p>Soccer Explained for Americans — built for the 2026 World Cup</p>
+  <p style="margin-top:6px;">
+    <a href="#" onclick="showPage('about', null)">About</a> &nbsp;·&nbsp;
+    <a href="#" onclick="showPage('privacy', null)">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="#" onclick="showPage('contact', null)">Contact</a>
+  </p>
+  <p style="margin-top:8px;">Contains affiliate links. We may earn a commission on qualifying purchases.</p>
+</footer>
+
+<!-- Ko-fi floating button -->
+<a href="https://ko-fi.com/YOUR_KOFI" target="_blank" rel="noopener" class="kofi-float">
+  ☕ Support this tool
+</a>
+
+<script>
+// ── CONFIG ── Replace these before deploying ──
+const KOFI_URL = 'https://ko-fi.com/YOUR_KOFI_USERNAME';
+// API key is handled server-side via a Vercel serverless function (see below)
+// For direct testing, you can temporarily put it here, but remove before deploying
+const API_ENDPOINT = '/api/ask'; // Vercel serverless function endpoint
+
+// ── QUESTION CACHE (pre-generated answers) ──
+const CACHE = {
+  "what is offside": {
+    answer: `Offside is like a penalty in football for being in the wrong position before a pass. When your teammate kicks the ball to you, you cannot be ahead of the last defender (not counting the goalie). Think of it like the line of scrimmage in the NFL — you can't be past that line to receive a forward pass. The "line" in soccer is the second-to-last defender, and it's checked at the exact moment the ball is kicked. If any part of your body that can score a goal is ahead of that defender, you're offside and the play is called back.`,
+    affiliate: 'watch'
+  },
+  "how does var work": {
+    answer: `VAR (Video Assistant Referee) is basically NFL instant replay — except soccer refs can't call it themselves. A separate team in a video room watches camera feeds and can flag four types of plays for review: goals, penalty kick decisions, red cards, and mistaken player identity. The on-field ref then either accepts the recommendation or goes to a pitch-side monitor to look for themselves, like an NFL official going "under the hood." The reason it takes so long is that soccer has no natural stoppages, so the whole game halts while the review happens.`,
+    affiliate: 'watch'
+  },
+  "what happens if tied after 90 minutes": {
+    answer: `In the knockout rounds (not group stage), a tie after 90 minutes means 30 minutes of extra time — two 15-minute halves. If still tied, you go to a penalty shootout: each team picks 5 shooters, they alternate kicking from 12 yards out against only the goalkeeper. Best of 5 wins. If still tied, sudden death kicks continue until one team scores and the other misses. It's the cruelest tiebreaker in sports — a 120-minute team battle decided by 5 individual moments under maximum pressure.`,
+    affiliate: 'watch'
+  },
+  "why do players fake injuries": {
+    answer: `A few real reasons. First, some aren't faking — soccer involves a lot of contact and a hard kick to the shin actually hurts. Second, players exaggerate to draw fouls, similar to flopping in the NBA. Third, "going down" can be a tactical move to kill clock or disrupt the opponent's momentum — like a late-game intentional foul in basketball. Referees are instructed to penalize obvious simulation with a yellow card, but it's hard to distinguish real pain from gamesmanship in real time.`,
+    affiliate: 'general'
+  },
+  "what is a penalty shootout": {
+    answer: `A penalty shootout is a tiebreaker used in knockout rounds when extra time doesn't produce a winner. Each team picks 5 players (in secret), who alternate taking shots from 12 yards out — just the shooter vs. the goalkeeper. Whoever scores more of their 5 wins. If it's tied after 5 each, it goes to sudden death: alternating kicks, first team to score while the other misses wins. It converts about 75% under normal conditions, but under World Cup knockout pressure with your country watching, nerves can take over. It's brutal.`,
+    affiliate: 'watch'
+  },
+  "how do group standings work": {
+    answer: `Groups of 4 teams, each plays the other 3 once. Win = 3 points, draw = 1 point each, loss = 0. Top 2 teams in points advance to the knockout round. Tiebreaker order: goal difference (goals scored minus goals allowed), then total goals scored, then head-to-head record. This is why a 4-0 win against a weak team matters — it can change your goal difference enough to survive a tiebreaker. Think NFL conference standings but compressed to 3 games.`,
+    affiliate: 'general'
+  },
+  "what is stoppage time": {
+    answer: `Soccer runs continuous time — the clock never stops for injuries, substitutions, or delays. Instead, the referee's assistant tracks all that dead time and the referee adds it at the end of each half. That's stoppage time (also called injury time or added time). A typical half might get 2-5 minutes added. Since FIFA started enforcing stricter time-wasting rules, it's common to see 8-10 minutes of stoppage added in the second half. Think of it like adding back all the time that was burned in the huddle in an NFL game, but done at the end.`,
+    affiliate: 'general'
+  },
+  "what is a red card": {
+    answer: `A red card is the most severe punishment a referee can give. The player is immediately ejected from the game and their team plays a man down for the rest of the match — you can't substitute a replacement. It's like an ejection in baseball combined with not being able to bring in a pinch runner. You can get a red card two ways: a second yellow card in the same game, or a straight red for serious foul play, violent conduct, or denying an obvious goal-scoring opportunity. Playing 11 vs 10 for 60+ minutes is a massive disadvantage.`,
+    affiliate: 'general'
+  },
+  "what is a yellow card": {
+    answer: `A yellow card is a formal caution — the referee shows it to a player as an official warning. Two yellows in the same game = automatic red card (ejection). Yellow cards also accumulate across the tournament: at the World Cup, if a player collects yellow cards in separate games, they can get suspended for future games once they hit a certain threshold. It's the equivalent of technical fouls in the NBA — one is a warning, two get you thrown out.`,
+    affiliate: 'general'
+  },
+  "how do substitutions work": {
+    answer: `Teams can make up to 5 substitutions per game, but only in 3 stoppages (plus halftime). So you can't sub one player at a time five different times — you have to bundle substitutions together. Once a player comes off, they can't come back on (like most American sports). Subs are a key tactical tool — bringing on a fast winger late in the game, or using your last sub to burn clock. Unlike the NFL, there are no special teams or free unlimited substitutions. Every player change is a strategic decision.`,
+    affiliate: 'general'
+  },
+  "what is goal difference": {
+    answer: `Goal difference is goals scored minus goals allowed across all your group stage games. It's the first tiebreaker when teams finish level on points. If USA scores 6 goals and allows 2, their goal difference is +4. This is why running up the score against a weaker opponent actually matters — that +4 vs. +2 could be the difference between advancing and going home if two teams finish on the same points. Think of it like point differential in the NBA or NFL used to break ties in the standings.`,
+    affiliate: 'general'
+  }
+};
+
+// ── STATE ──
+let questionsUsed = 0;
+const MAX_QUESTIONS = 3;
+
+// ── NAVIGATION ──
+function showPage(pageId, linkEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  if (linkEl) linkEl.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── ARTICLE NAVIGATION ──
+function showArticle(articleId) {
+  document.getElementById('articlesList').classList.add('hidden');
+  document.querySelectorAll('.article-full').forEach(a => a.classList.remove('active'));
+  document.getElementById('article-' + articleId).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showArticleList() {
+  document.getElementById('articlesList').classList.remove('hidden');
+  document.querySelectorAll('.article-full').forEach(a => a.classList.remove('active'));
+}
+
+// ── CHAT ──
+function askQuestion(text) {
+  showPage('chat', document.querySelector('nav a'));
+  document.getElementById('chatInput').value = text;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function normalizeQuestion(q) {
+  return q.toLowerCase()
+    .replace(/[?!.,]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getCachedAnswer(question) {
+  const normalized = normalizeQuestion(question);
+  for (const [key, value] of Object.entries(CACHE)) {
+    if (normalized.includes(key) || key.includes(normalized)) {
+      return value;
+    }
+  }
+  // Fuzzy partial match
+  for (const [key, value] of Object.entries(CACHE)) {
+    const keyWords = key.split(' ');
+    const matchCount = keyWords.filter(word => normalized.includes(word)).length;
+    if (matchCount >= Math.ceil(keyWords.length * 0.6)) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function getAffiliateCard(type) {
+  const cards = {
+    watch: {
+      icon: '📺',
+      title: 'Watch every World Cup match live',
+      sub: 'FuboTV — streams all tournament games. Free trial available.',
+      cta: 'Start Free Trial',
+      url: 'https://www.fubo.tv/?irad=YOUR_FUBO_ID&irmp=YOUR_MP_ID'
+    },
+    jersey: {
+      icon: '👕',
+      title: 'Rep your team with official jerseys',
+      sub: 'Shop World Cup gear on Amazon — ships fast.',
+      cta: 'Shop Jerseys',
+      url: 'https://www.amazon.com/s?k=world+cup+jersey+2026&tag=YOUR_AMAZON_TAG'
+    },
+    tickets: {
+      icon: '🎟️',
+      title: 'Get tickets to a World Cup match',
+      sub: 'StubHub — the largest secondary ticket marketplace.',
+      cta: 'Find Tickets',
+      url: 'https://www.stubhub.com/world-cup-tickets/?COUPON=YOUR_STUBHUB_ID'
+    },
+    general: {
+      icon: '⚽',
+      title: 'Shop World Cup merchandise',
+      sub: 'Scarves, balls, flags and more on Amazon.',
+      cta: 'Shop Now',
+      url: 'https://www.amazon.com/s?k=world+cup+2026+merchandise&tag=YOUR_AMAZON_TAG'
+    }
+  };
+
+  const card = cards[type] || cards.general;
+  return `
+    <a class="affiliate-card" href="${card.url}" target="_blank" rel="noopener sponsored">
+      <div class="affiliate-icon">${card.icon}</div>
+      <div class="affiliate-text">
+        <span class="affiliate-title">${card.title}</span>
+        <span class="affiliate-sub">${card.sub}</span>
+      </div>
+      <div class="affiliate-cta">${card.cta} →</div>
+    </a>
+  `;
+}
+
+function addMessage(role, text, affiliateType) {
+  const messages = document.getElementById('chatMessages');
+
+  const div = document.createElement('div');
+  div.className = 'message ' + role;
+
+  const avatar = role === 'user' ? '🇺🇸' : '⚽';
+  const label = role === 'user' ? 'You' : 'Soccer Explainer';
+
+  let affiliateHtml = '';
+  if (affiliateType) {
+    affiliateHtml = getAffiliateCard(affiliateType);
+  }
+
+  div.innerHTML = `
+    <div class="message-avatar">${avatar}</div>
+    <div class="message-body">
+      <div class="message-label">${label}</div>
+      <div class="message-text">${text}</div>
+      ${affiliateHtml}
+    </div>
+  `;
+
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function addTypingIndicator() {
+  const messages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'message assistant';
+  div.id = 'typingIndicator';
+  div.innerHTML = `
+    <div class="message-avatar">⚽</div>
+    <div class="message-body">
+      <div class="message-label">Soccer Explainer</div>
+      <div class="typing">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function detectAffiliateType(question) {
+  const q = question.toLowerCase();
+  if (q.includes('watch') || q.includes('stream') || q.includes('channel') || q.includes('tv')) return 'watch';
+  if (q.includes('ticket') || q.includes('attend') || q.includes('game in person') || q.includes('stadium')) return 'tickets';
+  if (q.includes('jersey') || q.includes('kit') || q.includes('shirt') || q.includes('uniform')) return 'jersey';
+  return 'general';
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const question = input.value.trim();
+  if (!question) return;
+  if (questionsUsed >= MAX_QUESTIONS) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+
+  addMessage('user', question);
+  addTypingIndicator();
+
+  questionsUsed++;
+  const remaining = MAX_QUESTIONS - questionsUsed;
+  document.getElementById('questionsLeft').textContent = remaining;
+
+  try {
+    // Check cache first
+    const cached = getCachedAnswer(question);
+    let answer, affiliateType;
+
+    if (cached) {
+      // Simulate a brief delay
+      await new Promise(r => setTimeout(r, 600));
+      answer = cached.answer;
+      affiliateType = cached.affiliate;
+    } else {
+      // Detect affiliate type from question
+      affiliateType = detectAffiliateType(question);
+
+      // Call API
+      const response = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+
+      if (!response.ok) throw new Error('API error');
+      const data = await response.json();
+      answer = data.answer;
+    }
+
+    removeTypingIndicator();
+    addMessage('assistant', answer, affiliateType);
+
+  } catch (err) {
+    removeTypingIndicator();
+    addMessage('assistant', "Sorry, something went wrong. Please try again in a moment.", null);
+    questionsUsed--; // refund the question
+    document.getElementById('questionsLeft').textContent = MAX_QUESTIONS - questionsUsed;
+  }
+
+  if (questionsUsed >= MAX_QUESTIONS) {
+    document.getElementById('chatFooter').style.display = 'none';
+    document.getElementById('limitReached').style.display = 'block';
+    document.getElementById('questionCounter').style.display = 'none';
+  } else {
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+// ── CONTACT FORM ──
+function handleContactSubmit(e) {
+  e.preventDefault();
+  document.getElementById('contactSuccess').style.display = 'block';
+  e.target.reset();
+}
+
+// ── Ko-fi URL update ──
+document.querySelectorAll('a[href*="YOUR_KOFI"]').forEach(a => {
+  a.addEventListener('click', function() {
+    // Replace with actual Ko-fi URL when live
+  });
+});
+</script>
+
+</body>
+</html>
