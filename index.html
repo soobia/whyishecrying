@@ -981,6 +981,7 @@ function getCachedAnswer(question) {
 
 function getAffiliateCard(type, question) {
   const amazonUrl = buildAmazonUrl(question || '');
+  const amazonLabel = buildAffiliateLabel(question || '');
   const cards = {
     watch: {
       icon: '📺',
@@ -991,9 +992,9 @@ function getAffiliateCard(type, question) {
     },
     jersey: {
       icon: '👕',
-      title: 'Rep your team with official jerseys',
-      sub: 'Shop World Cup gear on Amazon — ships fast.',
-      cta: 'Shop Jerseys',
+      title: amazonLabel.title,
+      sub: amazonLabel.sub,
+      cta: 'Shop on Amazon',
       url: amazonUrl
     },
     tickets: {
@@ -1005,9 +1006,9 @@ function getAffiliateCard(type, question) {
     },
     general: {
       icon: '⚽',
-      title: 'Shop World Cup merchandise',
-      sub: 'Scarves, balls, flags and more on Amazon.',
-      cta: 'Shop Now',
+      title: amazonLabel.title,
+      sub: amazonLabel.sub,
+      cta: 'Shop on Amazon',
       url: amazonUrl
     }
   };
@@ -1100,7 +1101,6 @@ function buildAmazonUrl(question) {
   const q = question.toLowerCase();
   const tag = 'whyishecrying-20';
 
-  // Check for player name
   for (const player of KNOWN_PLAYERS) {
     if (q.includes(player)) {
       const name = player === 'mbappe' || player === 'mbappé' ? 'Mbappe' :
@@ -1109,7 +1109,6 @@ function buildAmazonUrl(question) {
     }
   }
 
-  // Check for country name
   for (const country of KNOWN_COUNTRIES) {
     if (q.includes(country)) {
       const display = country === 'usa' || country === 'usmnt' || country === 'united states' || country === 'america' || country === 'american'
@@ -1118,13 +1117,33 @@ function buildAmazonUrl(question) {
     }
   }
 
-  // Jersey question without specific player/country
   if (q.includes('jersey') || q.includes('kit') || q.includes('shirt')) {
     return `https://www.amazon.com/s?k=world+cup+2026+jersey&tag=${tag}`;
   }
 
-  // Default merchandise
   return `https://www.amazon.com/s?k=world+cup+2026+merchandise&tag=${tag}`;
+}
+
+function buildAffiliateLabel(question) {
+  const q = question.toLowerCase();
+
+  for (const player of KNOWN_PLAYERS) {
+    if (q.includes(player)) {
+      const name = player === 'mbappe' || player === 'mbappé' ? 'Mbappe' :
+                   player.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { title: `Shop ${name} gear on Amazon`, sub: `Jerseys, shirts and more — ships fast.` };
+    }
+  }
+
+  for (const country of KNOWN_COUNTRIES) {
+    if (q.includes(country)) {
+      const display = country === 'usa' || country === 'usmnt' || country === 'united states' || country === 'america' || country === 'american'
+        ? 'USMNT' : country.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { title: `Shop ${display} merch on Amazon`, sub: `Jerseys, scarves, flags — ships fast.` };
+    }
+  }
+
+  return { title: 'Shop World Cup merchandise', sub: 'Scarves, balls, flags and more on Amazon.' };
 }
 
 async function sendMessage() {
