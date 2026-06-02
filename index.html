@@ -10,20 +10,72 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5562839312656090"
-     crossorigin="anonymous"></script>
+     crossorigin="anonymous">
+// ── HERO INPUT ──
+const heroInput = document.getElementById('heroInput');
+const heroPlaceholder = document.getElementById('heroPlaceholder');
+
+if (heroInput) {
+  heroInput.addEventListener('focus', function() {
+    if (heroPlaceholder) heroPlaceholder.style.opacity = '0';
+  });
+
+  heroInput.addEventListener('blur', function() {
+    if (!this.value) {
+      if (heroPlaceholder) heroPlaceholder.style.opacity = '1';
+    }
+  });
+
+  heroInput.addEventListener('input', function() {
+    if (heroPlaceholder) heroPlaceholder.style.opacity = this.value ? '0' : '1';
+  });
+}
+
+function autoResizeHero(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleHeroKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendFromHero();
+  }
+}
+
+function sendFromHero() {
+  const heroInput = document.getElementById('heroInput');
+  const question = heroInput ? heroInput.value.trim() : '';
+  if (!question) return;
+  // Copy to main chat input and send
+  const chatInput = document.getElementById('chatInput');
+  if (chatInput) chatInput.value = question;
+  heroInput.value = '';
+  if (heroPlaceholder) heroPlaceholder.style.opacity = '1';
+  // Make sure chat page is active
+  showPage('chat', document.querySelector('#bottom-nav a'));
+  // Scroll to chat
+  const chatWindow = document.getElementById('chatMessages');
+  if (chatWindow) chatWindow.scrollIntoView({ behavior: 'smooth' });
+  sendMessage();
+}
+
+</script>
 
 <style>
   :root {
-    --green: #1a6b2f;
-    --green-light: #2d9e4a;
-    --green-dark: #0f4020;
+    --green: #b22234;
+    --green-light: #cc2e42;
+    --green-dark: #0a2d6e;
     --gold: #f5c518;
-    --white: #f7f5f0;
-    --off-white: #ede9e0;
-    --dark: #12100e;
-    --gray: #6b6560;
-    --border: #d4cfc5;
-    --red: #c0392b;
+    --white: #f4f6fb;
+    --off-white: #e8edf7;
+    --dark: #0a0e1a;
+    --gray: #5a6070;
+    --border: #c8d0e0;
+    --red: #b22234;
+    --blue: #0a2d6e;
+    --star: #f5c518;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -75,7 +127,7 @@
   }
 
   nav {
-    background: var(--green);
+    background: var(--blue, #0a2d6e);
     display: flex;
     justify-content: center;
     gap: 0;
@@ -94,8 +146,8 @@
   }
 
   nav a:hover, nav a.active {
-    background: rgba(0,0,0,0.25);
-    color: var(--gold);
+    background: rgba(178,34,52,0.85);
+    color: #ffffff;
   }
 
   .page { display: none; }
@@ -152,9 +204,9 @@
   }
 
   .quick-btn:hover {
-    background: var(--green);
+    background: var(--blue, #0a2d6e);
     color: var(--white);
-    border-color: var(--green);
+    border-color: var(--blue, #0a2d6e);
   }
 
   .chat-window {
@@ -242,7 +294,7 @@
   }
 
   .affiliate-card:hover {
-    border-color: var(--green);
+    border-color: var(--blue, #0a2d6e);
     background: #fff;
   }
 
@@ -264,7 +316,7 @@
   }
 
   .affiliate-cta {
-    background: var(--green);
+    background: var(--blue, #0a2d6e);
     color: var(--white);
     font-size: 0.75rem;
     font-weight: 600;
@@ -299,11 +351,11 @@
     transition: border-color 0.15s;
   }
 
-  .chat-input:focus { border-color: var(--green); }
+  .chat-input:focus { border-color: var(--blue, #0a2d6e); }
   .chat-input::placeholder { color: #b0aca5; }
 
   .send-btn {
-    background: var(--green);
+    background: var(--blue, #0a2d6e);
     color: var(--white);
     border: none;
     border-radius: 6px;
@@ -318,7 +370,7 @@
     flex-shrink: 0;
   }
 
-  .send-btn:hover { background: var(--green-light); }
+  .send-btn:hover { background: #1a4d9e; }
   .send-btn:disabled { background: var(--border); color: var(--gray); cursor: not-allowed; }
 
   .question-counter {
@@ -395,8 +447,8 @@
   }
 
   .article-card:hover {
-    border-color: var(--green);
-    box-shadow: 0 4px 12px rgba(26,107,47,0.1);
+    border-color: var(--blue, #0a2d6e);
+    box-shadow: 0 4px 12px rgba(10,45,110,0.1);
   }
 
   .article-tag {
@@ -431,7 +483,7 @@
   .back-btn {
     background: none;
     border: none;
-    color: var(--green);
+    color: var(--blue, #0a2d6e);
     font-family: 'DM Sans', sans-serif;
     font-size: 0.88rem;
     font-weight: 600;
@@ -520,7 +572,7 @@
   .contact-form textarea { min-height: 120px; resize: vertical; }
 
   .contact-form button {
-    background: var(--green);
+    background: var(--blue, #0a2d6e);
     color: var(--white);
     border: none;
     border-radius: 6px;
@@ -533,7 +585,7 @@
     transition: background 0.15s;
   }
 
-  .contact-form button:hover { background: var(--green-light); }
+  .contact-form button:hover { background: #1a4d9e; }
 
   .legal-body h2 {
     font-family: 'Bebas Neue', sans-serif;
@@ -567,7 +619,7 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: var(--gold);
+    background: var(--star, #f5c518);
     color: var(--dark);
     text-decoration: none;
     padding: 10px 16px;
@@ -592,6 +644,128 @@
     .quick-btn { font-size: 0.78rem; padding: 6px 12px; }
     nav a { font-size: 0.75rem; padding: 9px 12px; }
   }
+
+  /* ── HERO INPUT ── */
+  header {
+    padding-bottom: 32px;
+  }
+
+  .hero-input-wrap {
+    position: relative;
+    max-width: 620px;
+    margin: 28px auto 0;
+  }
+
+  .hero-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .hero-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 18px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    color: var(--dark);
+    background: transparent;
+    resize: none;
+    min-height: 58px;
+    max-height: 120px;
+    line-height: 1.5;
+    z-index: 2;
+    position: relative;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .hero-placeholder {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.05rem;
+    color: #aab0c0;
+    pointer-events: none;
+    z-index: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .hero-cursor-inline {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background: var(--blue, #0a2d6e);
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+
+  .hero-btn {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 0 28px;
+    height: 58px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .hero-btn:hover { background: var(--green-light); }
+
+  .hero-note {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* ── BOTTOM NAV ── */
+  #bottom-nav {
+    background: var(--blue, #0a2d6e);
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  #bottom-nav a {
+    color: rgba(247,245,240,0.75);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 10px 16px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  #bottom-nav a:hover, #bottom-nav a.active {
+    background: rgba(178,34,52,0.85);
+    color: #fff;
+  }
+
 </style>
 </head>
 <body>
@@ -601,21 +775,10 @@
   <div class="site-tagline">Plain-English answers using NFL, NBA & MLB analogies. No jargon, no condescension.</div>
 </header>
 
-<nav>
-  <a href="#" class="active" onclick="showPage('chat', this)">Ask a Question</a>
-  <a href="#" onclick="showPage('articles', this)">Explainers</a>
-  <a href="#" onclick="showPage('about', this)">About</a>
-  <a href="#" onclick="showPage('contact', this)">Contact</a>
-  <a href="#" onclick="showPage('privacy', this)">Privacy</a>
-</nav>
+
 
 <div id="page-chat" class="page active">
   <div class="container">
-
-    <div class="chat-intro">
-      <strong>World Cup on and confused?</strong> Ask anything about football rules, moments, or drama.
-      You get <strong>3 free questions</strong> per session. Straight answers, American analogies.
-    </div>
 
     <div class="quick-questions">
       <p>Popular questions</p>
@@ -658,7 +821,7 @@
 
       <div id="limitReached" class="limit-reached" style="display:none;">
         <p>You've used your 3 free questions. Enjoying the tool? Drop a tip to unlock more sessions.</p>
-        <a href="https://ko-fi.com/YOUR_KOFI" target="_blank" rel="noopener" class="kofi-btn">☕ Buy me a coffee</a>
+        <a href="https://ko-fi.com/whyishecrying" target="_blank" rel="noopener" class="kofi-btn">☕ Buy me a coffee</a>
       </div>
     </div>
 
@@ -843,6 +1006,14 @@
   </div>
 </div>
 
+<nav id="bottom-nav">
+  <a href="#" class="active" onclick="showPage('chat', this)">Ask a Question</a>
+  <a href="#" onclick="showPage('articles', this)">Explainers</a>
+  <a href="#" onclick="showPage('about', this)">About</a>
+  <a href="#" onclick="showPage('contact', this)">Contact</a>
+  <a href="#" onclick="showPage('privacy', this)">Privacy</a>
+</nav>
+
 <footer>
   <p>Soccer Explained for Americans — built for the 2026 World Cup</p>
   <p style="margin-top:6px;">
@@ -853,7 +1024,7 @@
   <p style="margin-top:8px;">Contains affiliate links. We may earn a commission on qualifying purchases.</p>
 </footer>
 
-<a href="https://ko-fi.com/YOUR_KOFI" target="_blank" rel="noopener" class="kofi-float">
+<a href="https://ko-fi.com/whyishecrying" target="_blank" rel="noopener" class="kofi-float">
   ☕ Support this tool
 </a>
 
@@ -985,10 +1156,10 @@ function getAffiliateCard(type, question) {
   const cards = {
     watch: {
       icon: '📺',
-      title: 'Watch every World Cup match live',
-      sub: 'FuboTV — streams all tournament games. Free trial available.',
-      cta: 'Start Free Trial',
-      url: 'https://www.fubo.tv/?irad=YOUR_FUBO_ID&irmp=YOUR_MP_ID'
+      title: 'Shop World Cup gear while you watch',
+      sub: 'Jerseys, scarves, flags and more on Amazon.',
+      cta: 'Shop Amazon',
+      url: 'https://www.amazon.com/s?k=world+cup+2026+merchandise&tag=whyishecrying-20'
     },
     jersey: {
       icon: '👕',
@@ -1209,6 +1380,56 @@ function handleContactSubmit(e) {
   document.getElementById('contactSuccess').style.display = 'block';
   e.target.reset();
 }
+
+// ── HERO INPUT ──
+const heroInput = document.getElementById('heroInput');
+const heroPlaceholder = document.getElementById('heroPlaceholder');
+
+if (heroInput) {
+  heroInput.addEventListener('focus', function() {
+    if (heroPlaceholder) heroPlaceholder.style.opacity = '0';
+  });
+
+  heroInput.addEventListener('blur', function() {
+    if (!this.value) {
+      if (heroPlaceholder) heroPlaceholder.style.opacity = '1';
+    }
+  });
+
+  heroInput.addEventListener('input', function() {
+    if (heroPlaceholder) heroPlaceholder.style.opacity = this.value ? '0' : '1';
+  });
+}
+
+function autoResizeHero(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleHeroKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendFromHero();
+  }
+}
+
+function sendFromHero() {
+  const heroInput = document.getElementById('heroInput');
+  const question = heroInput ? heroInput.value.trim() : '';
+  if (!question) return;
+  // Copy to main chat input and send
+  const chatInput = document.getElementById('chatInput');
+  if (chatInput) chatInput.value = question;
+  heroInput.value = '';
+  if (heroPlaceholder) heroPlaceholder.style.opacity = '1';
+  // Make sure chat page is active
+  showPage('chat', document.querySelector('#bottom-nav a'));
+  // Scroll to chat
+  const chatWindow = document.getElementById('chatMessages');
+  if (chatWindow) chatWindow.scrollIntoView({ behavior: 'smooth' });
+  sendMessage();
+}
+
 </script>
 
 </body>
