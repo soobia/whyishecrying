@@ -7,12 +7,30 @@
 <meta name="description" content="Confused by the World Cup? Get plain-English answers using NFL, NBA, and MLB analogies. No jargon, no condescension.">
 
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-X6TP8027WV"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X6TP8027WV">
+function dismissSharePrompt() {
+  document.getElementById('sharePrompt').style.display = 'none';
+}
+
+function dismissKofiPrompt() {
+  document.getElementById('kofiPrompt').style.display = 'none';
+}
+
+</script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-X6TP8027WV');
+
+function dismissSharePrompt() {
+  document.getElementById('sharePrompt').style.display = 'none';
+}
+
+function dismissKofiPrompt() {
+  document.getElementById('kofiPrompt').style.display = 'none';
+}
+
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,6 +84,15 @@ function sendFromHero() {
   const chatWindow = document.getElementById('chatMessages');
   if (chatWindow) chatWindow.scrollIntoView({ behavior: 'smooth' });
   sendMessage();
+}
+
+
+function dismissSharePrompt() {
+  document.getElementById('sharePrompt').style.display = 'none';
+}
+
+function dismissKofiPrompt() {
+  document.getElementById('kofiPrompt').style.display = 'none';
 }
 
 </script>
@@ -774,6 +801,76 @@ function sendFromHero() {
     color: #fff;
   }
 
+
+  /* ── SHARE & KOFI PROMPTS ── */
+  .share-prompt, .kofi-prompt {
+    background: var(--off-white, #e8edf7);
+    border-top: 1px solid var(--border, #c8d0e0);
+    padding: 18px 20px;
+    text-align: center;
+    animation: fadeUp 0.3s ease;
+  }
+
+  .share-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--dark, #0a0e1a);
+    margin-bottom: 6px;
+  }
+
+  .share-sub {
+    font-size: 0.82rem;
+    color: var(--gray, #5a6070);
+    margin-bottom: 14px;
+  }
+
+  .share-btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .share-btn {
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+
+  .share-btn:hover { opacity: 0.85; }
+
+  .share-twitter {
+    background: #000;
+    color: #fff;
+  }
+
+  .share-reddit {
+    background: #ff4500;
+    color: #fff;
+  }
+
+  .share-kofi {
+    background: var(--star, #f5c518);
+    color: var(--dark, #0a0e1a);
+  }
+
+  .share-dismiss {
+    background: none;
+    border: none;
+    color: var(--gray, #5a6070);
+    font-size: 0.78rem;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: 'DM Sans', sans-serif;
+    padding: 4px;
+  }
+
+  .share-dismiss:hover { color: var(--dark, #0a0e1a); }
+
 </style>
 </head>
 <body>
@@ -827,14 +924,28 @@ function sendFromHero() {
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">Ask →</button>
       </div>
 
-      <div id="limitReached" class="limit-reached" style="display:none;">
-        <p>You've used your 3 free questions. Enjoying the tool? Drop a tip to unlock more sessions.</p>
-        <a href="https://ko-fi.com/whyishecrying" target="_blank" rel="noopener" class="kofi-btn">☕ Buy me a coffee</a>
+      <div id="sharePrompt" class="share-prompt" style="display:none;">
+        <p class="share-title">⚽ Enjoying this? Help spread the word!</p>
+        <p class="share-sub">Share with confused friends watching the World Cup — and keep asking away.</p>
+        <div class="share-btns">
+          <a href="https://twitter.com/intent/tweet?text=Confused+by+the+World+Cup%3F+This+tool+explains+soccer+in+plain+English+using+NFL%2FNBA+analogies+%F0%9F%87%BA%F0%9F%87%B8%E2%9A%BD&url=https%3A%2F%2Fwhyishecrying.com&hashtags=WorldCup2026,USMNT" target="_blank" rel="noopener" class="share-btn share-twitter">🐦 Share on X</a>
+          <a href="https://www.reddit.com/submit?url=https%3A%2F%2Fwhyishecrying.com&title=This+tool+explains+World+Cup+soccer+in+plain+English+for+Americans" target="_blank" rel="noopener" class="share-btn share-reddit">🟠 Share on Reddit</a>
+        </div>
+        <button class="share-dismiss" onclick="dismissSharePrompt()">No thanks, just keep asking →</button>
+      </div>
+
+      <div id="kofiPrompt" class="kofi-prompt" style="display:none;">
+        <p class="share-title">☕ You've asked 20 questions — you're basically an expert now!</p>
+        <p class="share-sub">This tool is free. If it's been helpful, a $1 tip keeps it running.</p>
+        <div class="share-btns">
+          <a href="https://ko-fi.com/whyishecrying" target="_blank" rel="noopener" class="share-btn share-kofi">☕ Buy us a $1 coffee</a>
+        </div>
+        <button class="share-dismiss" onclick="dismissKofiPrompt()">Maybe later — keep asking →</button>
       </div>
     </div>
 
     <div class="question-counter" id="questionCounter">
-      <span id="questionsLeft">3</span> free questions remaining this session
+      <span id="questionsLeft">3</span> live questions remaining &nbsp;·&nbsp; <span style="color: var(--blue, #0a2d6e); font-weight:600;">Popular questions above are always free</span>
     </div>
 
   </div>
@@ -1039,22 +1150,23 @@ function sendFromHero() {
 <script>
 const API_ENDPOINT = '/api/ask';
 const MAX_QUESTIONS = 3;
+const SHARE_THRESHOLD = 3;
+const KOFI_THRESHOLD = 20;
 
 // ── localStorage-backed question counter ──
 let questionsUsed = parseInt(localStorage.getItem('whyishecrying_q') || '0');
 
-// On load, apply limit state if already hit
-if (questionsUsed >= MAX_QUESTIONS) {
-  document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('chatFooter').style.display = 'none';
-    document.getElementById('limitReached').style.display = 'block';
-    document.getElementById('questionCounter').style.display = 'none';
-  });
-} else {
-  document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('questionsLeft').textContent = MAX_QUESTIONS - questionsUsed;
-  });
-}
+// On load, restore counter state
+document.addEventListener('DOMContentLoaded', function() {
+  const remaining = Math.max(0, MAX_QUESTIONS - questionsUsed);
+  document.getElementById('questionsLeft').textContent = remaining;
+  if (questionsUsed >= SHARE_THRESHOLD) {
+    document.getElementById('sharePrompt').style.display = 'block';
+  }
+  if (questionsUsed >= KOFI_THRESHOLD) {
+    document.getElementById('kofiPrompt').style.display = 'block';
+  }
+});
 
 const CACHE = {
   "what is offside": {
@@ -1382,13 +1494,18 @@ async function sendMessage() {
     document.getElementById('questionsLeft').textContent = MAX_QUESTIONS - questionsUsed;
   }
 
-  if (questionsUsed >= MAX_QUESTIONS) {
-    document.getElementById('chatFooter').style.display = 'none';
-    document.getElementById('limitReached').style.display = 'block';
-    document.getElementById('questionCounter').style.display = 'none';
-  } else {
-    document.getElementById('sendBtn').disabled = false;
+  // Show share prompt at threshold
+  if (questionsUsed === SHARE_THRESHOLD) {
+    document.getElementById('sharePrompt').style.display = 'block';
   }
+  // Show kofi prompt at threshold
+  if (questionsUsed === KOFI_THRESHOLD) {
+    document.getElementById('kofiPrompt').style.display = 'block';
+  }
+  // Update counter
+  const remaining = Math.max(0, MAX_QUESTIONS - questionsUsed);
+  document.getElementById('questionsLeft').textContent = remaining;
+  document.getElementById('sendBtn').disabled = false;
 }
 
 function handleContactSubmit(e) {
@@ -1444,6 +1561,15 @@ function sendFromHero() {
   const chatWindow = document.getElementById('chatMessages');
   if (chatWindow) chatWindow.scrollIntoView({ behavior: 'smooth' });
   sendMessage();
+}
+
+
+function dismissSharePrompt() {
+  document.getElementById('sharePrompt').style.display = 'none';
+}
+
+function dismissKofiPrompt() {
+  document.getElementById('kofiPrompt').style.display = 'none';
 }
 
 </script>
