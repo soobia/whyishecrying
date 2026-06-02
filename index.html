@@ -1321,7 +1321,6 @@ async function sendMessage() {
   const input = document.getElementById('chatInput');
   const question = input.value.trim();
   if (!question) return;
-  if (questionsUsed >= MAX_QUESTIONS) return;
 
   input.value = '';
   input.style.height = 'auto';
@@ -1335,11 +1334,20 @@ async function sendMessage() {
     let answer, affiliateType;
 
     if (cached) {
+      // Cached answers are always free -- no limit check
       await new Promise(r => setTimeout(r, 600));
       answer = cached.answer;
       affiliateType = cached.affiliate;
     } else {
-      // Only count against limit for live API calls
+      // Only live API calls count against the limit
+      if (questionsUsed >= MAX_QUESTIONS) {
+        removeTypingIndicator();
+        document.getElementById('chatFooter').style.display = 'none';
+        document.getElementById('limitReached').style.display = 'block';
+        document.getElementById('questionCounter').style.display = 'none';
+        return;
+      }
+
       questionsUsed++;
       localStorage.setItem('whyishecrying_q', questionsUsed);
       document.getElementById('questionsLeft').textContent = MAX_QUESTIONS - questionsUsed;
