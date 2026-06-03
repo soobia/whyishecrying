@@ -1259,14 +1259,21 @@ function normalizeQuestion(q) {
 
 function getCachedAnswer(question) {
   const normalized = normalizeQuestion(question);
+
+  // Exact or full phrase match first
   for (const [key, value] of Object.entries(CACHE)) {
-    if (normalized.includes(key) || key.includes(normalized)) return value;
+    if (normalized === key || normalized.includes(key)) return value;
   }
+
+  // Fuzzy match: require 80%+ of key words to match AND at least 2 words matched
   for (const [key, value] of Object.entries(CACHE)) {
-    const keyWords = key.split(' ');
+    const keyWords = key.split(' ').filter(w => w.length > 2); // ignore short words like "is", "a"
+    if (keyWords.length < 2) continue;
     const matchCount = keyWords.filter(word => normalized.includes(word)).length;
-    if (matchCount >= Math.ceil(keyWords.length * 0.6)) return value;
+    const matchRatio = matchCount / keyWords.length;
+    if (matchRatio >= 0.8 && matchCount >= 2) return value;
   }
+
   return null;
 }
 
