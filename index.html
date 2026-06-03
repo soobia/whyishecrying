@@ -1388,10 +1388,32 @@ function detectAffiliateType(question) {
   return 'general';
 }
 
+// Topic-to-Amazon keyword mapping
+const TOPIC_AMAZON_MAP = [
+  { keywords: ['red card', 'ejected', 'sent off', 'violent conduct'], search: 'soccer referee red card set', label: 'Soccer referee gear on Amazon' },
+  { keywords: ['yellow card', 'caution', 'booked'], search: 'soccer referee whistle kit', label: 'Soccer ref gear on Amazon' },
+  { keywords: ['goalkeeper', 'goalie', 'keeper', 'penalty save', 'shootout'], search: 'soccer goalkeeper gloves', label: 'Goalkeeper gloves on Amazon' },
+  { keywords: ['penalty', 'penalty kick', 'pk', 'spot kick'], search: 'soccer training penalty kick net', label: 'Soccer training gear on Amazon' },
+  { keywords: ['offside', 'offsides'], search: 'soccer tactics board game', label: 'Soccer strategy games on Amazon' },
+  { keywords: ['var', 'video assistant', 'instant replay', 'reviewed'], search: 'soccer fan gear funny VAR', label: 'Soccer fan merch on Amazon' },
+  { keywords: ['fake injury', 'diving', 'simulation', 'flopping'], search: 'soccer funny fan tshirt', label: 'Soccer fan shirts on Amazon' },
+  { keywords: ['free kick', 'free-kick', 'wall'], search: 'soccer free kick training equipment', label: 'Soccer training gear on Amazon' },
+  { keywords: ['header', 'heading'], search: 'soccer heading training ball', label: 'Soccer training gear on Amazon' },
+  { keywords: ['corner kick', 'corner'], search: 'soccer corner flag set', label: 'Soccer gear on Amazon' },
+  { keywords: ['stoppage time', 'injury time', 'added time', 'extra time'], search: 'soccer fan scarf world cup 2026', label: 'World Cup fan scarves on Amazon' },
+  { keywords: ['group stage', 'group standings', 'points table'], search: 'world cup 2026 wall chart poster', label: 'World Cup wall charts on Amazon' },
+  { keywords: ['substitution', 'sub ', 'substituted'], search: 'soccer jersey world cup 2026', label: 'Soccer jerseys on Amazon' },
+  { keywords: ['captain', 'armband', 'captaincy'], search: 'soccer captain armband', label: 'Captain armbands on Amazon' },
+  { keywords: ['boot', 'cleats', 'soccer shoe'], search: 'soccer cleats men 2026', label: 'Soccer cleats on Amazon' },
+  { keywords: ['watch', 'stream', 'broadcast', 'tv channel'], search: 'world cup 2026 fan bundle tv', label: 'World Cup fan gear on Amazon' },
+  { keywords: ['ticket', 'attend', 'stadium', 'venue'], search: 'world cup 2026 fan kit bag', label: 'World Cup stadium gear on Amazon' },
+];
+
 function buildAmazonUrl(question) {
   const q = question.toLowerCase();
   const tag = 'whyishecrying-20';
 
+  // Player match first
   for (const player of KNOWN_PLAYERS) {
     if (q.includes(player)) {
       const name = player === 'mbappe' || player === 'mbappé' ? 'Mbappe' :
@@ -1400,11 +1422,19 @@ function buildAmazonUrl(question) {
     }
   }
 
+  // Country match
   for (const country of KNOWN_COUNTRIES) {
     if (q.includes(country)) {
       const display = country === 'usa' || country === 'usmnt' || country === 'united states' || country === 'america' || country === 'american'
         ? 'USMNT' : country.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
       return `https://www.amazon.com/s?k=${encodeURIComponent(display + ' World Cup jersey 2026')}&tag=${tag}`;
+    }
+  }
+
+  // Topic match
+  for (const topic of TOPIC_AMAZON_MAP) {
+    if (topic.keywords.some(kw => q.includes(kw))) {
+      return `https://www.amazon.com/s?k=${encodeURIComponent(topic.search)}&tag=${tag}`;
     }
   }
 
@@ -1434,6 +1464,12 @@ function buildAffiliateLabel(question) {
     }
   }
 
+  for (const topic of TOPIC_AMAZON_MAP) {
+    if (topic.keywords.some(kw => q.includes(kw))) {
+      return { title: topic.label, sub: 'Ships fast from Amazon.' };
+    }
+  }
+
   return { title: 'Shop World Cup merchandise', sub: 'Scarves, balls, flags and more on Amazon.' };
 }
 
@@ -1460,17 +1496,10 @@ async function sendMessage() {
       affiliateType = cached.affiliate;
     } else {
       // Only live API calls count against the limit
-      if (questionsUsed >= MAX_QUESTIONS) {
-        removeTypingIndicator();
-        document.getElementById('chatFooter').style.display = 'none';
-        document.getElementById('limitReached').style.display = 'block';
-        document.getElementById('questionCounter').style.display = 'none';
-        return;
-      }
-
       questionsUsed++;
       localStorage.setItem('whyishecrying_q', questionsUsed);
-      document.getElementById('questionsLeft').textContent = MAX_QUESTIONS - questionsUsed;
+      const remaining = Math.max(0, MAX_QUESTIONS - questionsUsed);
+      document.getElementById('questionsLeft').textContent = remaining;
 
       affiliateType = detectAffiliateType(question);
       const response = await fetch('/api/ask', {
