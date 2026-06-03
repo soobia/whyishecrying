@@ -1,3 +1,26 @@
+// Words to ignore when extracting topic from question
+const STOP_WORDS = new Set([
+  'what','is','are','was','were','how','does','do','did','why','who','when','where',
+  'which','can','could','would','should','will','the','a','an','in','on','at','to',
+  'for','of','and','or','but','not','it','its','this','that','these','those','my',
+  'me','i','you','we','they','he','she','tell','explain','describe','about','give',
+  'please','help','understand','know','think','mean','means','called','call','want',
+  'make','makes','happen','happens','happened','go','goes','get','gets','just','like',
+  'than','then','so','if','be','been','being','have','has','had','with','from','by',
+  'as','up','out','into','through','during','before','after','between','each','few',
+  'more','most','other','some','such','no','nor','own','same','too','very','also'
+]);
+
+function extractTopics(question) {
+  return question
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, '')
+    .split(' ')
+    .filter(w => w.length > 2 && !STOP_WORDS.has(w))
+    .sort()
+    .join('-');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -27,18 +50,20 @@ export default async function handler(req, res) {
 
   const isLive = liveKeywords.some(kw => q.includes(kw));
   const isPlayerOrTeam = !isLive && playerKeywords.some(kw => q.includes(kw));
-
-  // TTL: 0 = never cache, 21600 = 6 hours, 2592000 = 30 days
   const cacheTTL = isLive ? 0 : isPlayerOrTeam ? 21600 : 2592000;
 
-  // Build a stable cache key from the question
-  const cacheKey = 'q:' + q.replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, '-').slice(0, 150);
+  // Build cache key from extracted topics -- same topics = same key regardless of phrasing
+  const topicKey = extractTopics(question);
+  const cacheKey = 'q:' + topicKey;
 
   const redisUrl = process.env.UPSTASH_REDIS_KV_REST_API_URL;
   const redisToken = process.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
 
   // ── CHECK CACHE ──
-  if (!isLive && redisUrl && redisToken) {
+  // Only use cache if we extracted at least 1 meaningful topic word
+  const hasMeaningfulTopics = topicKey.length > 2;
+
+  if (!isLive && hasMeaningfulTopics && redisUrl && redisToken) {
     try {
       const cacheRes = await fetch(`${redisUrl}/get/${encodeURIComponent(cacheKey)}`, {
         headers: { Authorization: `Bearer ${redisToken}` }
@@ -105,9 +130,8 @@ RULES:
       .trim() || 'Sorry, I could not generate an answer.';
 
     // ── SAVE TO CACHE ──
-    if (!isLive && cacheTTL > 0 && redisUrl && redisToken) {
+    if (!isLive && cacheTTL > 0 && hasMeaningfulTopics && redisUrl && redisToken) {
       try {
-        // Upstash REST API: SET key value EX seconds
         await fetch(`${redisUrl}/set/${encodeURIComponent(cacheKey)}/${encodeURIComponent(answer)}/ex/${cacheTTL}`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${redisToken}` }
