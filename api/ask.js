@@ -9,40 +9,45 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid question' });
   }
 
-  const q = question.toLowerCase();
+  const q = question.toLowerCase().trim();
 
   // ── CACHE TIER DETECTION ──
-  const isLive = [
+  const liveKeywords = [
     'today', 'tonight', 'now', 'just', 'latest', 'current', 'right now',
-    'this morning', 'last night', 'yesterday', 'just happened', 'score',
-    'result', 'who won', 'did they win', 'live', 'happening', 'ongoing',
-    'this match', 'the game today', 'just scored', 'breaking'
-  ].some(kw => q.includes(kw));
+    'this morning', 'last night', 'yesterday', 'score', 'result', 'who won',
+    'did they win', 'live', 'happening', 'ongoing', 'just scored', 'breaking',
+    'this match', 'the game today'
+  ];
 
-  const isPlayerOrTeam = [
+  const playerKeywords = [
     'who is', 'who are', 'how is', 'how are', 'injured', 'injury',
-    'playing tonight', 'starting', 'lineup', 'squad', 'roster', 'form',
-    'captain', 'manager', 'coach', 'transfer', 'suspended'
-  ].some(kw => q.includes(kw));
+    'playing tonight', 'starting', 'lineup', 'squad', 'roster',
+    'form', 'manager', 'coach', 'transfer', 'suspended'
+  ];
 
-  // Never cache live questions. Cache rules forever, player/team for 6 hours.
-  const cacheTTL = isLive ? 0 : isPlayerOrTeam ? 21600 : 2592000; // 0, 6hrs, 30 days
+  const isLive = liveKeywords.some(kw => q.includes(kw));
+  const isPlayerOrTeam = !isLive && playerKeywords.some(kw => q.includes(kw));
 
-  const cacheKey = 'q:' + q.trim().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '_').slice(0, 100);
+  // TTL: 0 = never cache, 21600 = 6 hours, 2592000 = 30 days
+  const cacheTTL = isLive ? 0 : isPlayerOrTeam ? 21600 : 2592000;
+
+  // Build a stable cache key from the question
+  const cacheKey = 'q:' + q.replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, '-').slice(0, 150);
 
   const redisUrl = process.env.UPSTASH_REDIS_KV_REST_API_URL;
   const redisToken = process.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
 
-  // ── CHECK CACHE (skip for live questions) ──
+  // ── CHECK CACHE ──
   if (!isLive && redisUrl && redisToken) {
     try {
       const cacheRes = await fetch(`${redisUrl}/get/${encodeURIComponent(cacheKey)}`, {
         headers: { Authorization: `Bearer ${redisToken}` }
       });
-      const cacheData = await cacheRes.json();
-      if (cacheData.result) {
-        const cached = JSON.parse(cacheData.result);
-        return res.status(200).json({ answer: cached.answer, fromCache: true });
+      if (cacheRes.ok) {
+        const cacheData = await cacheRes.json();
+        if (cacheData.result) {
+          return res.status(200).json({ answer: cacheData.result, fromCache: true });
+        }
       }
     } catch (err) {
       console.error('Cache read error:', err);
@@ -99,16 +104,13 @@ RULES:
       .join(' ')
       .trim() || 'Sorry, I could not generate an answer.';
 
-    // ── SAVE TO CACHE (skip live questions) ──
-    if (!isLive && redisUrl && redisToken && cacheTTL > 0) {
+    // ── SAVE TO CACHE ──
+    if (!isLive && cacheTTL > 0 && redisUrl && redisToken) {
       try {
-        await fetch(`${redisUrl}/set/${encodeURIComponent(cacheKey)}`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${redisToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ value: JSON.stringify({ answer, question }), ex: cacheTTL })
+        // Upstash REST API: SET key value EX seconds
+        await fetch(`${redisUrl}/set/${encodeURIComponent(cacheKey)}/${encodeURIComponent(answer)}/ex/${cacheTTL}`, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${redisToken}` }
         });
       } catch (err) {
         console.error('Cache write error:', err);
