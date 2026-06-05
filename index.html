@@ -16,6 +16,30 @@ function dismissKofiPrompt() {
   document.getElementById('kofiPrompt').style.display = 'none';
 }
 
+
+function showScores(linkEl) {
+  // On mobile, show the scores sidebar and hide chat content
+  document.querySelectorAll('#bottom-nav a').forEach(a => a.classList.remove('active'));
+  linkEl.classList.add('active');
+  const sidebar = document.getElementById('scoresSidebar');
+  const chatCol = document.querySelector('.chat-column');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.add('active');
+    chatCol.style.display = 'none';
+  }
+  window.scrollTo(0, 0);
+}
+
+// When switching back to chat page, restore chat column
+const origShowPage = showPage;
+function showPage(pageId, linkEl) {
+  const chatCol = document.querySelector('.chat-column');
+  const sidebar = document.getElementById('scoresSidebar');
+  if (chatCol) chatCol.style.display = '';
+  if (sidebar) sidebar.classList.remove('active');
+  origShowPage(pageId, linkEl);
+}
+
 </script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -29,6 +53,30 @@ function dismissSharePrompt() {
 
 function dismissKofiPrompt() {
   document.getElementById('kofiPrompt').style.display = 'none';
+}
+
+
+function showScores(linkEl) {
+  // On mobile, show the scores sidebar and hide chat content
+  document.querySelectorAll('#bottom-nav a').forEach(a => a.classList.remove('active'));
+  linkEl.classList.add('active');
+  const sidebar = document.getElementById('scoresSidebar');
+  const chatCol = document.querySelector('.chat-column');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.add('active');
+    chatCol.style.display = 'none';
+  }
+  window.scrollTo(0, 0);
+}
+
+// When switching back to chat page, restore chat column
+const origShowPage = showPage;
+function showPage(pageId, linkEl) {
+  const chatCol = document.querySelector('.chat-column');
+  const sidebar = document.getElementById('scoresSidebar');
+  if (chatCol) chatCol.style.display = '';
+  if (sidebar) sidebar.classList.remove('active');
+  origShowPage(pageId, linkEl);
 }
 
 </script>
@@ -93,6 +141,30 @@ function dismissSharePrompt() {
 
 function dismissKofiPrompt() {
   document.getElementById('kofiPrompt').style.display = 'none';
+}
+
+
+function showScores(linkEl) {
+  // On mobile, show the scores sidebar and hide chat content
+  document.querySelectorAll('#bottom-nav a').forEach(a => a.classList.remove('active'));
+  linkEl.classList.add('active');
+  const sidebar = document.getElementById('scoresSidebar');
+  const chatCol = document.querySelector('.chat-column');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.add('active');
+    chatCol.style.display = 'none';
+  }
+  window.scrollTo(0, 0);
+}
+
+// When switching back to chat page, restore chat column
+const origShowPage = showPage;
+function showPage(pageId, linkEl) {
+  const chatCol = document.querySelector('.chat-column');
+  const sidebar = document.getElementById('scoresSidebar');
+  if (chatCol) chatCol.style.display = '';
+  if (sidebar) sidebar.classList.remove('active');
+  origShowPage(pageId, linkEl);
 }
 
 </script>
@@ -871,6 +943,67 @@ function dismissKofiPrompt() {
 
   .share-dismiss:hover { color: var(--dark, #0a0e1a); }
 
+
+  /* ── SCORES SIDEBAR ── */
+  .main-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  .chat-column {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .scores-sidebar {
+    width: 380px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 20px;
+  }
+
+  .scores-sidebar h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    color: var(--blue, #0a2d6e);
+    margin-bottom: 10px;
+  }
+
+  .scores-tab-btn {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .main-layout {
+      display: block;
+      padding: 0;
+    }
+
+    .chat-column {
+      padding: 20px 16px 60px;
+    }
+
+    .scores-sidebar {
+      display: none;
+      width: 100%;
+      padding: 20px 16px 60px;
+      position: static;
+    }
+
+    .scores-sidebar.active {
+      display: block;
+    }
+
+    .scores-tab-btn {
+      display: block;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -883,7 +1016,8 @@ function dismissKofiPrompt() {
 
 
 <div id="page-chat" class="page active">
-  <div class="container">
+  <div class="main-layout">
+    <div class="chat-column">
 
     <div class="quick-questions">
       <p>Popular questions</p>
@@ -948,7 +1082,22 @@ function dismissKofiPrompt() {
       <span id="questionsLeft">3</span> live questions remaining &nbsp;·&nbsp; <span style="color: var(--blue, #0a2d6e); font-weight:600;">Popular questions above are always free</span>
     </div>
 
-  </div>
+    </div><!-- end chat-column -->
+
+    <div class="scores-sidebar" id="scoresSidebar">
+      <h3>⚽ Scores & Standings</h3>
+      <iframe
+        src="https://www.sportbusy.com/embed/world-cup?theme=2"
+        width="380"
+        height="500"
+        style="border:none;border-radius:12px;overflow:hidden;width:100%;min-height:520px"
+        loading="lazy"
+        title="World Cup 2026 Fixtures" width="380"
+      ></iframe>
+      <p style="font-size:0.7rem;color:var(--gray);margin-top:6px;text-align:center">Sports data by <a href="https://www.sportbusy.com" target="_blank" rel="noopener" style="color:var(--gray)">SportBusy</a></p>
+    </div>
+
+  </div><!-- end main-layout -->
 </div>
 
 <div id="page-articles" class="page">
@@ -1128,6 +1277,7 @@ function dismissKofiPrompt() {
 <nav id="bottom-nav">
   <a href="#" class="active" onclick="showPage('chat', this)">Ask a Question</a>
   <a href="#" onclick="showPage('articles', this)">Explainers</a>
+  <a href="#" class="scores-tab-btn" onclick="showScores(this)">Scores & Standings</a>
   <a href="#" onclick="showPage('about', this)">About</a>
   <a href="#" onclick="showPage('contact', this)">Contact</a>
   <a href="#" onclick="showPage('privacy', this)">Privacy</a>
@@ -1606,6 +1756,30 @@ function dismissSharePrompt() {
 
 function dismissKofiPrompt() {
   document.getElementById('kofiPrompt').style.display = 'none';
+}
+
+
+function showScores(linkEl) {
+  // On mobile, show the scores sidebar and hide chat content
+  document.querySelectorAll('#bottom-nav a').forEach(a => a.classList.remove('active'));
+  linkEl.classList.add('active');
+  const sidebar = document.getElementById('scoresSidebar');
+  const chatCol = document.querySelector('.chat-column');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.add('active');
+    chatCol.style.display = 'none';
+  }
+  window.scrollTo(0, 0);
+}
+
+// When switching back to chat page, restore chat column
+const origShowPage = showPage;
+function showPage(pageId, linkEl) {
+  const chatCol = document.querySelector('.chat-column');
+  const sidebar = document.getElementById('scoresSidebar');
+  if (chatCol) chatCol.style.display = '';
+  if (sidebar) sidebar.classList.remove('active');
+  origShowPage(pageId, linkEl);
 }
 
 </script>
