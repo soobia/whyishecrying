@@ -26,11 +26,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { question } = req.body;
+  const { question: rawQuestion } = req.body;
 
-  if (!question || typeof question !== 'string' || question.length > 500) {
+  if (!rawQuestion || typeof rawQuestion !== 'string') {
     return res.status(400).json({ error: 'Invalid question' });
   }
+
+  // Gracefully truncate to 1000 characters instead of rejecting
+  const question = rawQuestion.slice(0, 1000);
 
   const q = question.toLowerCase().trim();
 
@@ -60,7 +63,6 @@ export default async function handler(req, res) {
   const redisToken = process.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
 
   // ── CHECK CACHE ──
-  // Only use cache if we extracted at least 1 meaningful topic word
   const hasMeaningfulTopics = topicKey.length > 2;
 
   if (!isLive && hasMeaningfulTopics && redisUrl && redisToken) {
