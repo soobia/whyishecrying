@@ -917,7 +917,7 @@
     </div>
 
     <div class="question-counter" id="questionCounter">
-      <span id="questionsLeft">3</span> live questions remaining &nbsp;·&nbsp; <span style="color: var(--blue, #0a2d6e); font-weight:600;">Popular questions above are always free</span>
+      <span id="counterText">Ask anything — popular questions are always free</span>
     </div>
 
     </div><!-- end chat-column -->
@@ -1140,8 +1140,9 @@ const AMAZON_TAG = 'whyishecrying-20';
 let questionsUsed = parseInt(localStorage.getItem('whyishecrying_q') || '0');
 
 document.addEventListener('DOMContentLoaded', function() {
-  const remaining = Math.max(0, MAX_QUESTIONS - questionsUsed);
-  document.getElementById('questionsLeft').textContent = remaining;
+  if (questionsUsed >= MAX_QUESTIONS) {
+    document.getElementById('counterText').innerHTML = 'Enjoying this? <a href="https://twitter.com/intent/tweet?text=Confused+by+the+World+Cup%3F+This+tool+explains+soccer+in+plain+English+%F0%9F%87%BA%F0%9F%87%B8%E2%9A%BD&url=https%3A%2F%2Fwhyishecrying.com&hashtags=WorldCup2026,USMNT" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;">Share it</a> \u2014 and keep asking all you want';
+  }
   if (questionsUsed >= SHARE_THRESHOLD) {
     document.getElementById('sharePrompt').style.display = 'block';
   }
@@ -1522,8 +1523,9 @@ async function sendMessage() {
   if (questionsUsed === KOFI_THRESHOLD) {
     document.getElementById('kofiPrompt').style.display = 'block';
   }
-  const remaining = Math.max(0, MAX_QUESTIONS - questionsUsed);
-  document.getElementById('questionsLeft').textContent = remaining;
+  if (questionsUsed >= MAX_QUESTIONS) {
+    document.getElementById('counterText').innerHTML = 'Enjoying this? <a href="https://twitter.com/intent/tweet?text=Confused+by+the+World+Cup%3F+This+tool+explains+soccer+in+plain+English+%F0%9F%87%BA%F0%9F%87%B8%E2%9A%BD&url=https%3A%2F%2Fwhyishecrying.com&hashtags=WorldCup2026,USMNT" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;">Share it</a> \u2014 and keep asking all you want';
+  }
   document.getElementById('sendBtn').disabled = false;
 }
 
