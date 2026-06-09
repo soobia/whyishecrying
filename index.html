@@ -7,638 +7,18 @@
 <meta name="description" content="Confused by the World Cup? Get plain-English answers using NFL, NBA, and MLB analogies. No jargon, no condescension.">
 
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-X6TP8027WV">
-function dismissSharePrompt() {
-  document.getElementById('sharePrompt').style.display = 'none';
-}
-
-function dismissKofiPrompt() {
-  document.getElementById('kofiPrompt').style.display = 'none';
-}
-
-
-function showScores(linkEl) {
-  // On mobile, show the scores sidebar and hide chat content
-  document.querySelectorAll('#bottom-nav a').forEach(a => a.classList.remove('active'));
-  linkEl.classList.add('active');
-  const sidebar = document.getElementById('scoresSidebar');
-  const chatCol = document.querySelector('.chat-column');
-  if (window.innerWidth <= 768) {
-    sidebar.classList.add('active');
-    chatCol.style.display = 'none';
-  }
-  window.scrollTo(0, 0);
-}
-
-// When switching back to chat page, restore chat column
-const origShowPage = showPage;
-function showPage(pageId, linkEl) {
-  const chatCol = document.querySelector('.chat-column');
-  const sidebar = document.getElementById('scoresSidebar');
-  if (chatCol) chatCol.style.display = '';
-  if (sidebar) sidebar.classList.remove('active');
-  origShowPage(pageId, linkEl);
-}
-
-
-// ── SCORES WIDGET ──
-const COUNTRY_FLAGS = {
-  'Germany': '🇩🇪', 'France': '🇫🇷', 'Brazil': '🇧🇷', 'Argentina': '🇦🇷',
-  'Spain': '🇪🇸', 'Portugal': '🇵🇹', 'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Netherlands': '🇳🇱',
-  'Belgium': '🇧🇪', 'Italy': '🇮🇹', 'Uruguay': '🇺🇾', 'Mexico': '🇲🇽',
-  'United States': '🇺🇸', 'USA': '🇺🇸', 'Canada': '🇨🇦', 'Japan': '🇯🇵',
-  'South Korea': '🇰🇷', 'Morocco': '🇲🇦', 'Senegal': '🇸🇳', 'Ghana': '🇬🇭',
-  'Australia': '🇦🇺', 'Croatia': '🇭🇷', 'Serbia': '🇷🇸', 'Switzerland': '🇨🇭',
-  'Denmark': '🇩🇰', 'Poland': '🇵🇱', 'Ecuador': '🇪🇨', 'Colombia': '🇨🇴',
-  'Chile': '🇨🇱', 'Peru': '🇵🇪', 'Nigeria': '🇳🇬', 'Cameroon': '🇨🇲',
-  'Tunisia': '🇹🇳', 'South Africa': '🇿🇦', 'Egypt': '🇪🇬', 'Algeria': '🇩🇿',
-  'Saudi Arabia': '🇸🇦', 'Iran': '🇮🇷', 'Qatar': '🇶🇦', 'Turkey': '🇹🇷',
-  'Ukraine': '🇺🇦', 'Czech Republic': '🇨🇿', 'Austria': '🇦🇹', 'Hungary': '🇭🇺',
-  'Slovakia': '🇸🇰', 'Romania': '🇷🇴', 'Greece': '🇬🇷', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Paraguay': '🇵🇾', 'Bolivia': '🇧🇴', 'Venezuela': '🇻🇪',
-  'Honduras': '🇭🇳', 'Costa Rica': '🇨🇷', 'Panama': '🇵🇦', 'Jamaica': '🇯🇲',
-  'New Zealand': '🇳🇿', 'Indonesia': '🇮🇩', 'Thailand': '🇹🇭', 'Vietnam': '🇻🇳',
-  'China': '🇨🇳', 'India': '🇮🇳', 'Iraq': '🇮🇶', 'Syria': '🇸🇾',
-  'Bosnia-Herzegovina': '🇧🇦', 'Slovenia': '🇸🇮', 'Albania': '🇦🇱',
-  'North Macedonia': '🇲🇰', 'Montenegro': '🇲🇪', 'Kosovo': '🇽🇰',
-  'Haiti': '🇭🇹', 'Cuba': '🇨🇺', 'Trinidad and Tobago': '🇹🇹'
-};
-
-function getFlag(name) {
-  return COUNTRY_FLAGS[name] || '🏳️';
-}
-
-function getAmazonUrl(teamName) {
-  const tag = 'whyishecrying-20';
-  const search = teamName === 'United States' ? 'USMNT World Cup jersey 2026' : teamName + ' World Cup jersey 2026';
-  return `https://www.amazon.com/s?k=${encodeURIComponent(search)}&tag=${tag}`;
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
-    ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-}
-
-let scoresCache = { fixtures: null, standings: null, lastFetch: 0 };
-let currentScoresTab = 'fixtures';
-
-async function loadScores(type) {
-  const now = Date.now();
-  if (scoresCache[type] && now - scoresCache.lastFetch < 60000) {
-    renderScores(type, scoresCache[type]);
-    return;
-  }
-
-  document.getElementById('scoresContent').innerHTML = '<div class="scores-loading">Loading...</div>';
-
-  try {
-    const res = await fetch(`/api/scores?type=${type}`);
-    if (!res.ok) throw new Error('failed');
-    const data = await res.json();
-    scoresCache[type] = data;
-    scoresCache.lastFetch = now;
-    renderScores(type, data);
-  } catch (err) {
-    document.getElementById('scoresContent').innerHTML = '<div class="scores-loading">Could not load data. Try again.</div>';
-  }
-}
-
-function renderScores(type, data) {
-  const container = document.getElementById('scoresContent');
-  if (!container) return;
-
-  if (type === 'fixtures') {
-    if (!data.matches || data.matches.length === 0) {
-      container.innerHTML = '<div class="scores-loading">No fixtures available yet.</div>';
-      return;
-    }
-
-    // Show next 20 matches + any live/today
-    const now = new Date();
-    const matches = data.matches
-      .filter(m => new Date(m.utcDate) >= new Date(now - 24 * 60 * 60 * 1000))
-      .slice(0, 25);
-
-    let html = '';
-    matches.forEach(m => {
-      const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
-      const isFinished = m.status === 'FINISHED';
-      const home = m.homeTeam.name;
-      const away = m.awayTeam.name;
-      const homeScore = m.score.fullTime.home ?? (isLive ? m.score.halfTime.home ?? '0' : '-');
-      const awayScore = m.score.fullTime.away ?? (isLive ? m.score.halfTime.away ?? '0' : '-');
-      const scoreDisplay = isFinished || isLive ? `${homeScore} - ${awayScore}` : 'vs';
-      const group = m.group ? m.group.replace('GROUP_', 'Group ') : '';
-
-      html += `
-        <div class="fixture-item">
-          <div class="fixture-date">${isLive ? '🔴 LIVE' : formatDate(m.utcDate)}</div>
-          <div class="fixture-teams">
-            <a class="fixture-team" href="${getAmazonUrl(home)}" target="_blank" rel="noopener sponsored">
-              <span class="fixture-flag">${getFlag(home)}</span>
-              <span>${home}</span>
-            </a>
-            <span class="fixture-score${isLive ? ' live' : ''}">${scoreDisplay}</span>
-            <a class="fixture-team away" href="${getAmazonUrl(away)}" target="_blank" rel="noopener sponsored">
-              <span>${away}</span>
-              <span class="fixture-flag">${getFlag(away)}</span>
-            </a>
-          </div>
-          ${group ? `<div class="fixture-group">${group}</div>` : ''}
-        </div>`;
-    });
-    container.innerHTML = html;
-
-  } else {
-    // Standings
-    if (!data.standings || data.standings.length === 0) {
-      container.innerHTML = '<div class="scores-loading">Standings will appear once the tournament begins.</div>';
-      return;
-    }
-
-    let html = '';
-    data.standings.forEach(group => {
-      html += `<div class="standing-group">${group.group || 'Group'}</div>`;
-      group.table.forEach(row => {
-        const team = row.team.name;
-        html += `
-          <div class="standing-row">
-            <span class="standing-pos">${row.position}</span>
-            <a class="standing-team" href="${getAmazonUrl(team)}" target="_blank" rel="noopener sponsored">
-              <span>${getFlag(team)}</span>
-              <span>${team}</span>
-            </a>
-            <div class="standing-stats">
-              <span>${row.playedGames}G</span>
-              <span>${row.won}W</span>
-              <span>${row.draw}D</span>
-              <span>${row.lost}L</span>
-            </div>
-            <span class="standing-pts">${row.points}pts</span>
-          </div>`;
-      });
-    });
-    container.innerHTML = html;
-  }
-}
-
-function switchScoresTab(type, btn) {
-  currentScoresTab = type;
-  document.querySelectorAll('.scores-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  loadScores(type);
-}
-
-// Load fixtures on page load
-document.addEventListener('DOMContentLoaded', function() {
-  loadScores('fixtures');
-  // Refresh every 60 seconds
-  setInterval(() => loadScores(currentScoresTab), 60000);
-});
-
-</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X6TP8027WV"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-X6TP8027WV');
-
-function dismissSharePrompt() {
-  document.getElementById('sharePrompt').style.display = 'none';
-}
-
-function dismissKofiPrompt() {
-  document.getElementById('kofiPrompt').style.display = 'none';
-}
-
-
-function showScores(linkEl) {
-  // On mobile, show the scores sidebar and hide chat content
-  document.querySelectorAll('#bottom-nav a').forEach(a => a.classList.remove('active'));
-  linkEl.classList.add('active');
-  const sidebar = document.getElementById('scoresSidebar');
-  const chatCol = document.querySelector('.chat-column');
-  if (window.innerWidth <= 768) {
-    sidebar.classList.add('active');
-    chatCol.style.display = 'none';
-  }
-  window.scrollTo(0, 0);
-}
-
-// When switching back to chat page, restore chat column
-const origShowPage = showPage;
-function showPage(pageId, linkEl) {
-  const chatCol = document.querySelector('.chat-column');
-  const sidebar = document.getElementById('scoresSidebar');
-  if (chatCol) chatCol.style.display = '';
-  if (sidebar) sidebar.classList.remove('active');
-  origShowPage(pageId, linkEl);
-}
-
-
-// ── SCORES WIDGET ──
-const COUNTRY_FLAGS = {
-  'Germany': '🇩🇪', 'France': '🇫🇷', 'Brazil': '🇧🇷', 'Argentina': '🇦🇷',
-  'Spain': '🇪🇸', 'Portugal': '🇵🇹', 'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Netherlands': '🇳🇱',
-  'Belgium': '🇧🇪', 'Italy': '🇮🇹', 'Uruguay': '🇺🇾', 'Mexico': '🇲🇽',
-  'United States': '🇺🇸', 'USA': '🇺🇸', 'Canada': '🇨🇦', 'Japan': '🇯🇵',
-  'South Korea': '🇰🇷', 'Morocco': '🇲🇦', 'Senegal': '🇸🇳', 'Ghana': '🇬🇭',
-  'Australia': '🇦🇺', 'Croatia': '🇭🇷', 'Serbia': '🇷🇸', 'Switzerland': '🇨🇭',
-  'Denmark': '🇩🇰', 'Poland': '🇵🇱', 'Ecuador': '🇪🇨', 'Colombia': '🇨🇴',
-  'Chile': '🇨🇱', 'Peru': '🇵🇪', 'Nigeria': '🇳🇬', 'Cameroon': '🇨🇲',
-  'Tunisia': '🇹🇳', 'South Africa': '🇿🇦', 'Egypt': '🇪🇬', 'Algeria': '🇩🇿',
-  'Saudi Arabia': '🇸🇦', 'Iran': '🇮🇷', 'Qatar': '🇶🇦', 'Turkey': '🇹🇷',
-  'Ukraine': '🇺🇦', 'Czech Republic': '🇨🇿', 'Austria': '🇦🇹', 'Hungary': '🇭🇺',
-  'Slovakia': '🇸🇰', 'Romania': '🇷🇴', 'Greece': '🇬🇷', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Paraguay': '🇵🇾', 'Bolivia': '🇧🇴', 'Venezuela': '🇻🇪',
-  'Honduras': '🇭🇳', 'Costa Rica': '🇨🇷', 'Panama': '🇵🇦', 'Jamaica': '🇯🇲',
-  'New Zealand': '🇳🇿', 'Indonesia': '🇮🇩', 'Thailand': '🇹🇭', 'Vietnam': '🇻🇳',
-  'China': '🇨🇳', 'India': '🇮🇳', 'Iraq': '🇮🇶', 'Syria': '🇸🇾',
-  'Bosnia-Herzegovina': '🇧🇦', 'Slovenia': '🇸🇮', 'Albania': '🇦🇱',
-  'North Macedonia': '🇲🇰', 'Montenegro': '🇲🇪', 'Kosovo': '🇽🇰',
-  'Haiti': '🇭🇹', 'Cuba': '🇨🇺', 'Trinidad and Tobago': '🇹🇹'
-};
-
-function getFlag(name) {
-  return COUNTRY_FLAGS[name] || '🏳️';
-}
-
-function getAmazonUrl(teamName) {
-  const tag = 'whyishecrying-20';
-  const search = teamName === 'United States' ? 'USMNT World Cup jersey 2026' : teamName + ' World Cup jersey 2026';
-  return `https://www.amazon.com/s?k=${encodeURIComponent(search)}&tag=${tag}`;
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
-    ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-}
-
-let scoresCache = { fixtures: null, standings: null, lastFetch: 0 };
-let currentScoresTab = 'fixtures';
-
-async function loadScores(type) {
-  const now = Date.now();
-  if (scoresCache[type] && now - scoresCache.lastFetch < 60000) {
-    renderScores(type, scoresCache[type]);
-    return;
-  }
-
-  document.getElementById('scoresContent').innerHTML = '<div class="scores-loading">Loading...</div>';
-
-  try {
-    const res = await fetch(`/api/scores?type=${type}`);
-    if (!res.ok) throw new Error('failed');
-    const data = await res.json();
-    scoresCache[type] = data;
-    scoresCache.lastFetch = now;
-    renderScores(type, data);
-  } catch (err) {
-    document.getElementById('scoresContent').innerHTML = '<div class="scores-loading">Could not load data. Try again.</div>';
-  }
-}
-
-function renderScores(type, data) {
-  const container = document.getElementById('scoresContent');
-  if (!container) return;
-
-  if (type === 'fixtures') {
-    if (!data.matches || data.matches.length === 0) {
-      container.innerHTML = '<div class="scores-loading">No fixtures available yet.</div>';
-      return;
-    }
-
-    // Show next 20 matches + any live/today
-    const now = new Date();
-    const matches = data.matches
-      .filter(m => new Date(m.utcDate) >= new Date(now - 24 * 60 * 60 * 1000))
-      .slice(0, 25);
-
-    let html = '';
-    matches.forEach(m => {
-      const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
-      const isFinished = m.status === 'FINISHED';
-      const home = m.homeTeam.name;
-      const away = m.awayTeam.name;
-      const homeScore = m.score.fullTime.home ?? (isLive ? m.score.halfTime.home ?? '0' : '-');
-      const awayScore = m.score.fullTime.away ?? (isLive ? m.score.halfTime.away ?? '0' : '-');
-      const scoreDisplay = isFinished || isLive ? `${homeScore} - ${awayScore}` : 'vs';
-      const group = m.group ? m.group.replace('GROUP_', 'Group ') : '';
-
-      html += `
-        <div class="fixture-item">
-          <div class="fixture-date">${isLive ? '🔴 LIVE' : formatDate(m.utcDate)}</div>
-          <div class="fixture-teams">
-            <a class="fixture-team" href="${getAmazonUrl(home)}" target="_blank" rel="noopener sponsored">
-              <span class="fixture-flag">${getFlag(home)}</span>
-              <span>${home}</span>
-            </a>
-            <span class="fixture-score${isLive ? ' live' : ''}">${scoreDisplay}</span>
-            <a class="fixture-team away" href="${getAmazonUrl(away)}" target="_blank" rel="noopener sponsored">
-              <span>${away}</span>
-              <span class="fixture-flag">${getFlag(away)}</span>
-            </a>
-          </div>
-          ${group ? `<div class="fixture-group">${group}</div>` : ''}
-        </div>`;
-    });
-    container.innerHTML = html;
-
-  } else {
-    // Standings
-    if (!data.standings || data.standings.length === 0) {
-      container.innerHTML = '<div class="scores-loading">Standings will appear once the tournament begins.</div>';
-      return;
-    }
-
-    let html = '';
-    data.standings.forEach(group => {
-      html += `<div class="standing-group">${group.group || 'Group'}</div>`;
-      group.table.forEach(row => {
-        const team = row.team.name;
-        html += `
-          <div class="standing-row">
-            <span class="standing-pos">${row.position}</span>
-            <a class="standing-team" href="${getAmazonUrl(team)}" target="_blank" rel="noopener sponsored">
-              <span>${getFlag(team)}</span>
-              <span>${team}</span>
-            </a>
-            <div class="standing-stats">
-              <span>${row.playedGames}G</span>
-              <span>${row.won}W</span>
-              <span>${row.draw}D</span>
-              <span>${row.lost}L</span>
-            </div>
-            <span class="standing-pts">${row.points}pts</span>
-          </div>`;
-      });
-    });
-    container.innerHTML = html;
-  }
-}
-
-function switchScoresTab(type, btn) {
-  currentScoresTab = type;
-  document.querySelectorAll('.scores-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  loadScores(type);
-}
-
-// Load fixtures on page load
-document.addEventListener('DOMContentLoaded', function() {
-  loadScores('fixtures');
-  // Refresh every 60 seconds
-  setInterval(() => loadScores(currentScoresTab), 60000);
-});
-
 </script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5562839312656090"
-     crossorigin="anonymous">
-// ── HERO INPUT ──
-const heroInput = document.getElementById('heroInput');
-const heroPlaceholder = document.getElementById('heroPlaceholder');
-
-if (heroInput) {
-  heroInput.addEventListener('focus', function() {
-    if (heroPlaceholder) heroPlaceholder.style.opacity = '0';
-  });
-
-  heroInput.addEventListener('blur', function() {
-    if (!this.value) {
-      if (heroPlaceholder) heroPlaceholder.style.opacity = '1';
-    }
-  });
-
-  heroInput.addEventListener('input', function() {
-    if (heroPlaceholder) heroPlaceholder.style.opacity = this.value ? '0' : '1';
-  });
-}
-
-function autoResizeHero(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-function handleHeroKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendFromHero();
-  }
-}
-
-function sendFromHero() {
-  const heroInput = document.getElementById('heroInput');
-  const question = heroInput ? heroInput.value.trim() : '';
-  if (!question) return;
-  // Copy to main chat input and send
-  const chatInput = document.getElementById('chatInput');
-  if (chatInput) chatInput.value = question;
-  heroInput.value = '';
-  if (heroPlaceholder) heroPlaceholder.style.opacity = '1';
-  // Make sure chat page is active
-  showPage('chat', document.querySelector('#bottom-nav a'));
-  // Scroll to chat
-  const chatWindow = document.getElementById('chatMessages');
-  if (chatWindow) chatWindow.scrollIntoView({ behavior: 'smooth' });
-  sendMessage();
-}
-
-
-function dismissSharePrompt() {
-  document.getElementById('sharePrompt').style.display = 'none';
-}
-
-function dismissKofiPrompt() {
-  document.getElementById('kofiPrompt').style.display = 'none';
-}
-
-
-function showScores(linkEl) {
-  // On mobile, show the scores sidebar and hide chat content
-  document.querySelectorAll('#bottom-nav a').forEach(a => a.classList.remove('active'));
-  linkEl.classList.add('active');
-  const sidebar = document.getElementById('scoresSidebar');
-  const chatCol = document.querySelector('.chat-column');
-  if (window.innerWidth <= 768) {
-    sidebar.classList.add('active');
-    chatCol.style.display = 'none';
-  }
-  window.scrollTo(0, 0);
-}
-
-// When switching back to chat page, restore chat column
-const origShowPage = showPage;
-function showPage(pageId, linkEl) {
-  const chatCol = document.querySelector('.chat-column');
-  const sidebar = document.getElementById('scoresSidebar');
-  if (chatCol) chatCol.style.display = '';
-  if (sidebar) sidebar.classList.remove('active');
-  origShowPage(pageId, linkEl);
-}
-
-
-// ── SCORES WIDGET ──
-const COUNTRY_FLAGS = {
-  'Germany': '🇩🇪', 'France': '🇫🇷', 'Brazil': '🇧🇷', 'Argentina': '🇦🇷',
-  'Spain': '🇪🇸', 'Portugal': '🇵🇹', 'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Netherlands': '🇳🇱',
-  'Belgium': '🇧🇪', 'Italy': '🇮🇹', 'Uruguay': '🇺🇾', 'Mexico': '🇲🇽',
-  'United States': '🇺🇸', 'USA': '🇺🇸', 'Canada': '🇨🇦', 'Japan': '🇯🇵',
-  'South Korea': '🇰🇷', 'Morocco': '🇲🇦', 'Senegal': '🇸🇳', 'Ghana': '🇬🇭',
-  'Australia': '🇦🇺', 'Croatia': '🇭🇷', 'Serbia': '🇷🇸', 'Switzerland': '🇨🇭',
-  'Denmark': '🇩🇰', 'Poland': '🇵🇱', 'Ecuador': '🇪🇨', 'Colombia': '🇨🇴',
-  'Chile': '🇨🇱', 'Peru': '🇵🇪', 'Nigeria': '🇳🇬', 'Cameroon': '🇨🇲',
-  'Tunisia': '🇹🇳', 'South Africa': '🇿🇦', 'Egypt': '🇪🇬', 'Algeria': '🇩🇿',
-  'Saudi Arabia': '🇸🇦', 'Iran': '🇮🇷', 'Qatar': '🇶🇦', 'Turkey': '🇹🇷',
-  'Ukraine': '🇺🇦', 'Czech Republic': '🇨🇿', 'Austria': '🇦🇹', 'Hungary': '🇭🇺',
-  'Slovakia': '🇸🇰', 'Romania': '🇷🇴', 'Greece': '🇬🇷', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Paraguay': '🇵🇾', 'Bolivia': '🇧🇴', 'Venezuela': '🇻🇪',
-  'Honduras': '🇭🇳', 'Costa Rica': '🇨🇷', 'Panama': '🇵🇦', 'Jamaica': '🇯🇲',
-  'New Zealand': '🇳🇿', 'Indonesia': '🇮🇩', 'Thailand': '🇹🇭', 'Vietnam': '🇻🇳',
-  'China': '🇨🇳', 'India': '🇮🇳', 'Iraq': '🇮🇶', 'Syria': '🇸🇾',
-  'Bosnia-Herzegovina': '🇧🇦', 'Slovenia': '🇸🇮', 'Albania': '🇦🇱',
-  'North Macedonia': '🇲🇰', 'Montenegro': '🇲🇪', 'Kosovo': '🇽🇰',
-  'Haiti': '🇭🇹', 'Cuba': '🇨🇺', 'Trinidad and Tobago': '🇹🇹'
-};
-
-function getFlag(name) {
-  return COUNTRY_FLAGS[name] || '🏳️';
-}
-
-function getAmazonUrl(teamName) {
-  const tag = 'whyishecrying-20';
-  const search = teamName === 'United States' ? 'USMNT World Cup jersey 2026' : teamName + ' World Cup jersey 2026';
-  return `https://www.amazon.com/s?k=${encodeURIComponent(search)}&tag=${tag}`;
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
-    ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-}
-
-let scoresCache = { fixtures: null, standings: null, lastFetch: 0 };
-let currentScoresTab = 'fixtures';
-
-async function loadScores(type) {
-  const now = Date.now();
-  if (scoresCache[type] && now - scoresCache.lastFetch < 60000) {
-    renderScores(type, scoresCache[type]);
-    return;
-  }
-
-  document.getElementById('scoresContent').innerHTML = '<div class="scores-loading">Loading...</div>';
-
-  try {
-    const res = await fetch(`/api/scores?type=${type}`);
-    if (!res.ok) throw new Error('failed');
-    const data = await res.json();
-    scoresCache[type] = data;
-    scoresCache.lastFetch = now;
-    renderScores(type, data);
-  } catch (err) {
-    document.getElementById('scoresContent').innerHTML = '<div class="scores-loading">Could not load data. Try again.</div>';
-  }
-}
-
-function renderScores(type, data) {
-  const container = document.getElementById('scoresContent');
-  if (!container) return;
-
-  if (type === 'fixtures') {
-    if (!data.matches || data.matches.length === 0) {
-      container.innerHTML = '<div class="scores-loading">No fixtures available yet.</div>';
-      return;
-    }
-
-    // Show next 20 matches + any live/today
-    const now = new Date();
-    const matches = data.matches
-      .filter(m => new Date(m.utcDate) >= new Date(now - 24 * 60 * 60 * 1000))
-      .slice(0, 25);
-
-    let html = '';
-    matches.forEach(m => {
-      const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
-      const isFinished = m.status === 'FINISHED';
-      const home = m.homeTeam.name;
-      const away = m.awayTeam.name;
-      const homeScore = m.score.fullTime.home ?? (isLive ? m.score.halfTime.home ?? '0' : '-');
-      const awayScore = m.score.fullTime.away ?? (isLive ? m.score.halfTime.away ?? '0' : '-');
-      const scoreDisplay = isFinished || isLive ? `${homeScore} - ${awayScore}` : 'vs';
-      const group = m.group ? m.group.replace('GROUP_', 'Group ') : '';
-
-      html += `
-        <div class="fixture-item">
-          <div class="fixture-date">${isLive ? '🔴 LIVE' : formatDate(m.utcDate)}</div>
-          <div class="fixture-teams">
-            <a class="fixture-team" href="${getAmazonUrl(home)}" target="_blank" rel="noopener sponsored">
-              <span class="fixture-flag">${getFlag(home)}</span>
-              <span>${home}</span>
-            </a>
-            <span class="fixture-score${isLive ? ' live' : ''}">${scoreDisplay}</span>
-            <a class="fixture-team away" href="${getAmazonUrl(away)}" target="_blank" rel="noopener sponsored">
-              <span>${away}</span>
-              <span class="fixture-flag">${getFlag(away)}</span>
-            </a>
-          </div>
-          ${group ? `<div class="fixture-group">${group}</div>` : ''}
-        </div>`;
-    });
-    container.innerHTML = html;
-
-  } else {
-    // Standings
-    if (!data.standings || data.standings.length === 0) {
-      container.innerHTML = '<div class="scores-loading">Standings will appear once the tournament begins.</div>';
-      return;
-    }
-
-    let html = '';
-    data.standings.forEach(group => {
-      html += `<div class="standing-group">${group.group || 'Group'}</div>`;
-      group.table.forEach(row => {
-        const team = row.team.name;
-        html += `
-          <div class="standing-row">
-            <span class="standing-pos">${row.position}</span>
-            <a class="standing-team" href="${getAmazonUrl(team)}" target="_blank" rel="noopener sponsored">
-              <span>${getFlag(team)}</span>
-              <span>${team}</span>
-            </a>
-            <div class="standing-stats">
-              <span>${row.playedGames}G</span>
-              <span>${row.won}W</span>
-              <span>${row.draw}D</span>
-              <span>${row.lost}L</span>
-            </div>
-            <span class="standing-pts">${row.points}pts</span>
-          </div>`;
-      });
-    });
-    container.innerHTML = html;
-  }
-}
-
-function switchScoresTab(type, btn) {
-  currentScoresTab = type;
-  document.querySelectorAll('.scores-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  loadScores(type);
-}
-
-// Load fixtures on page load
-document.addEventListener('DOMContentLoaded', function() {
-  loadScores('fixtures');
-  // Refresh every 60 seconds
-  setInterval(() => loadScores(currentScoresTab), 60000);
-});
-
-</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5562839312656090" crossorigin="anonymous"></script>
 
 <style>
   :root {
@@ -670,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background-image:
       repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.03) 28px, rgba(255,255,255,0.03) 29px),
       repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(255,255,255,0.03) 28px, rgba(255,255,255,0.03) 29px);
-    padding: 28px 24px 24px;
+    padding: 28px 24px 32px;
     text-align: center;
     border-bottom: 4px solid var(--gold);
     position: relative;
@@ -736,20 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
     margin: 0 auto;
     padding: 32px 20px 60px;
   }
-
-  .chat-intro {
-    background: var(--off-white);
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--gold);
-    border-radius: 6px;
-    padding: 18px 20px;
-    margin-bottom: 24px;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: var(--gray);
-  }
-
-  .chat-intro strong { color: var(--dark); }
 
   .quick-questions { margin-bottom: 24px; }
 
@@ -961,19 +327,6 @@ document.addEventListener('DOMContentLoaded', function() {
   .question-counter span {
     font-weight: 700;
     color: var(--green);
-  }
-
-  .limit-reached {
-    text-align: center;
-    padding: 20px;
-    background: var(--off-white);
-    border-top: 1px solid var(--border);
-  }
-
-  .limit-reached p {
-    font-size: 0.9rem;
-    color: var(--gray);
-    margin-bottom: 12px;
   }
 
   .kofi-btn {
@@ -1223,104 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
     nav a { font-size: 0.75rem; padding: 9px 12px; }
   }
 
-  /* ── HERO INPUT ── */
-  header {
-    padding-bottom: 32px;
-  }
-
-  .hero-input-wrap {
-    position: relative;
-    max-width: 620px;
-    margin: 28px auto 0;
-  }
-
-  .hero-input-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-    overflow: hidden;
-    padding: 0;
-  }
-
-  .hero-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    padding: 18px 20px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1.05rem;
-    color: var(--dark);
-    background: transparent;
-    resize: none;
-    min-height: 58px;
-    max-height: 120px;
-    line-height: 1.5;
-    z-index: 2;
-    position: relative;
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-  }
-
-  .hero-placeholder {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.05rem;
-    color: #aab0c0;
-    pointer-events: none;
-    z-index: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    transition: opacity 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .hero-cursor-inline {
-    display: inline-block;
-    width: 2px;
-    height: 1.2em;
-    background: var(--blue, #0a2d6e);
-    animation: blink 1s step-end infinite;
-    vertical-align: middle;
-    margin-right: 4px;
-    flex-shrink: 0;
-  }
-
-  .hero-btn {
-    background: var(--green);
-    color: #fff;
-    border: none;
-    padding: 0 28px;
-    height: 58px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s;
-    white-space: nowrap;
-    flex-shrink: 0;
-    letter-spacing: 0.02em;
-  }
-
-  .hero-btn:hover { background: var(--green-light); }
-
-  .hero-note {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 0.78rem;
-    color: rgba(255,255,255,0.5);
-  }
-
-  /* ── BOTTOM NAV ── */
+  /* BOTTOM NAV */
   #bottom-nav {
     background: var(--blue, #0a2d6e);
     display: flex;
@@ -1344,8 +600,7 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #fff;
   }
 
-
-  /* ── SHARE & KOFI PROMPTS ── */
+  /* SHARE & KOFI PROMPTS */
   .share-prompt, .kofi-prompt {
     background: var(--off-white, #e8edf7);
     border-top: 1px solid var(--border, #c8d0e0);
@@ -1385,21 +640,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   .share-btn:hover { opacity: 0.85; }
-
-  .share-twitter {
-    background: #000;
-    color: #fff;
-  }
-
-  .share-reddit {
-    background: #ff4500;
-    color: #fff;
-  }
-
-  .share-kofi {
-    background: var(--star, #f5c518);
-    color: var(--dark, #0a0e1a);
-  }
+  .share-twitter { background: #000; color: #fff; }
+  .share-reddit { background: #ff4500; color: #fff; }
+  .share-kofi { background: var(--star, #f5c518); color: var(--dark, #0a0e1a); }
 
   .share-dismiss {
     background: none;
@@ -1414,8 +657,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   .share-dismiss:hover { color: var(--dark, #0a0e1a); }
 
-
-  /* ── SCORES SIDEBAR ── */
+  /* SCORES SIDEBAR */
   .main-layout {
     display: flex;
     gap: 24px;
@@ -1425,10 +667,7 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 32px 20px 60px;
   }
 
-  .chat-column {
-    flex: 1;
-    min-width: 0;
-  }
+  .chat-column { flex: 1; min-width: 0; }
 
   .scores-sidebar {
     width: 380px;
@@ -1445,38 +684,22 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-bottom: 10px;
   }
 
-  .scores-tab-btn {
-    display: none;
-  }
+  .scores-tab-btn { display: none; }
 
   @media (max-width: 768px) {
-    .main-layout {
-      display: block;
-      padding: 0;
-    }
-
-    .chat-column {
-      padding: 20px 16px 60px;
-    }
-
+    .main-layout { display: block; padding: 0; }
+    .chat-column { padding: 20px 16px 60px; }
     .scores-sidebar {
       display: none;
       width: 100%;
       padding: 20px 16px 60px;
       position: static;
     }
-
-    .scores-sidebar.active {
-      display: block;
-    }
-
-    .scores-tab-btn {
-      display: block;
-    }
+    .scores-sidebar.active { display: block; }
+    .scores-tab-btn { display: block; }
   }
 
-
-  /* ── SCORES WIDGET ── */
+  /* SCORES WIDGET */
   .scores-widget {
     background: #fff;
     border: 1px solid var(--border, #c8d0e0);
@@ -1504,15 +727,9 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: all 0.15s;
   }
 
-  .scores-tab.active {
-    background: var(--blue, #0a2d6e);
-    color: #fff;
-  }
+  .scores-tab.active { background: var(--blue, #0a2d6e); color: #fff; }
 
-  .scores-content {
-    max-height: 520px;
-    overflow-y: auto;
-  }
+  .scores-content { max-height: 520px; overflow-y: auto; }
 
   .scores-loading {
     padding: 20px;
@@ -1554,9 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   .fixture-team:hover { color: var(--green, #b22234); }
-
   .fixture-team.away { flex-direction: row-reverse; text-align: right; }
-
   .fixture-flag { font-size: 1rem; }
 
   .fixture-score {
@@ -1602,12 +817,7 @@ document.addEventListener('DOMContentLoaded', function() {
     gap: 6px;
   }
 
-  .standing-pos {
-    width: 16px;
-    color: var(--gray);
-    font-weight: 600;
-    flex-shrink: 0;
-  }
+  .standing-pos { width: 16px; color: var(--gray); font-weight: 600; flex-shrink: 0; }
 
   .standing-team {
     flex: 1;
@@ -1634,7 +844,6 @@ document.addEventListener('DOMContentLoaded', function() {
     min-width: 20px;
     text-align: right;
   }
-
 </style>
 </head>
 <body>
@@ -1643,8 +852,6 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="site-title">Soccer <span>Explained</span> for Americans</div>
   <div class="site-tagline">Plain-English answers using NFL, NBA & MLB analogies. No jargon, no condescension.</div>
 </header>
-
-
 
 <div id="page-chat" class="page active">
   <div class="main-layout">
@@ -1732,40 +939,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <div id="page-articles" class="page">
   <div class="container">
-
     <div class="articles-list" id="articlesList">
       <div class="articles-grid">
-
         <div class="article-card" onclick="showArticle('offside')">
           <span class="article-tag">The Rules</span>
           <div class="article-title">Offside: The NFL Equivalent That Makes It Click</div>
           <div class="article-excerpt">It's the call that causes more confusion than any other in soccer. Here's exactly how it works, using an analogy that every football fan will instantly understand.</div>
         </div>
-
         <div class="article-card" onclick="showArticle('var')">
           <span class="article-tag">Technology</span>
           <div class="article-title">VAR Explained: Instant Replay, But With More Drama</div>
           <div class="article-excerpt">Video Assistant Referee technology — why it exists, when refs actually use it, and why it makes some moments take 10 minutes to resolve.</div>
         </div>
-
         <div class="article-card" onclick="showArticle('groups')">
           <span class="article-tag">Tournament Format</span>
           <div class="article-title">How Group Stage Standings Actually Work</div>
           <div class="article-excerpt">Points, goal difference, tiebreakers — the World Cup group stage has a specific logic. Once you get it, tracking your team becomes genuinely exciting.</div>
         </div>
-
         <div class="article-card" onclick="showArticle('tiebreakers')">
           <span class="article-tag">Tournament Format</span>
           <div class="article-title">Extra Time, Penalties, and the Cruelest Tiebreaker in Sports</div>
           <div class="article-excerpt">What happens when it's still tied after 90 minutes? Here's the sequence — and why a penalty shootout is uniquely brutal compared to anything in American sports.</div>
         </div>
-
         <div class="article-card" onclick="showArticle('rules')">
           <span class="article-tag">Rules</span>
           <div class="article-title">Five Recent Rule Changes You Need to Know for 2026</div>
           <div class="article-excerpt">The rules of soccer aren't static. From handball rules to substitutions, here's what's changed in recent years that could affect the World Cup you're watching right now.</div>
         </div>
-
       </div>
     </div>
 
@@ -1846,7 +1046,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <p>Goalkeepers are now limited to 8 seconds when holding the ball (down from 6, though enforcement was previously lax). Referees are also instructed to add more accurate stoppage time — which is why you're seeing 10+ minutes of added time in matches where previously it might have been 4 or 5.</p>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -1860,7 +1059,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <h2>How It Works</h2>
       <p>The AI answering your questions is powered by Claude (made by Anthropic). It's been specifically prompted to give concise, analogy-first answers for American first-time fans. You get 3 free questions per session.</p>
       <h2>Affiliate Disclosure</h2>
-      <p>This site includes affiliate links to services like FuboTV, Amazon, and StubHub. If you click and sign up or purchase, we may earn a small commission at no extra cost to you. These links help keep the tool free.</p>
+      <p>This site includes affiliate links to services like Amazon, Fanatics, and StubHub. If you click and sign up or purchase, we may earn a small commission at no extra cost to you. These links help keep the tool free.</p>
     </div>
   </div>
 </div>
@@ -1895,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <h2>Cookies</h2>
       <p>We use localStorage to count your free questions per device. This contains no personal information. If Google AdSense or Google Analytics is enabled, those services set their own cookies per Google's privacy policy.</p>
       <h2>Affiliate Links</h2>
-      <p>This site contains affiliate links to third-party services (FuboTV, Amazon Associates, StubHub). Clicking these links may set cookies on third-party sites. We receive a commission if you complete a purchase or signup. We are not responsible for the privacy practices of those third-party sites.</p>
+      <p>This site contains affiliate links to third-party services (Amazon Associates, Fanatics, and StubHub). Clicking these links may set cookies on third-party sites. We receive a commission if you complete a purchase or signup. We are not responsible for the privacy practices of those third-party sites.</p>
       <h2>Third-Party APIs</h2>
       <p>Questions submitted to the AI tool are sent to Anthropic's API. Anthropic's privacy policy applies to that data. We do not log or store the content of your questions on our servers.</p>
       <h2>Contact</h2>
@@ -1933,10 +1132,13 @@ const MAX_QUESTIONS = 3;
 const SHARE_THRESHOLD = 3;
 const KOFI_THRESHOLD = 20;
 
+// ── AFFILIATE URLS ──
+const FANATICS_URL = 'https://fanatics.93n6tx.net/L04jKY';
+const AMAZON_TAG = 'whyishecrying-20';
+
 // ── localStorage-backed question counter ──
 let questionsUsed = parseInt(localStorage.getItem('whyishecrying_q') || '0');
 
-// On load, restore counter state
 document.addEventListener('DOMContentLoaded', function() {
   const remaining = Math.max(0, MAX_QUESTIONS - questionsUsed);
   document.getElementById('questionsLeft').textContent = remaining;
@@ -1946,6 +1148,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (questionsUsed >= KOFI_THRESHOLD) {
     document.getElementById('kofiPrompt').style.display = 'block';
   }
+  loadScores('fixtures');
+  setInterval(() => loadScores(currentScoresTab), 60000);
 });
 
 const CACHE = {
@@ -2039,48 +1243,168 @@ function normalizeQuestion(q) {
 
 function getCachedAnswer(question) {
   const normalized = normalizeQuestion(question);
-
-  // Exact or full phrase match first
   for (const [key, value] of Object.entries(CACHE)) {
     if (normalized === key || normalized.includes(key)) return value;
   }
-
-  // Fuzzy match: require 80%+ of key words to match AND at least 2 words matched
   for (const [key, value] of Object.entries(CACHE)) {
-    const keyWords = key.split(' ').filter(w => w.length > 2); // ignore short words like "is", "a"
+    const keyWords = key.split(' ').filter(w => w.length > 2);
     if (keyWords.length < 2) continue;
     const matchCount = keyWords.filter(word => normalized.includes(word)).length;
     const matchRatio = matchCount / keyWords.length;
     if (matchRatio >= 0.8 && matchCount >= 2) return value;
   }
-
   return null;
+}
+
+// Known players -- Fanatics carries official licensed jerseys
+const KNOWN_PLAYERS = [
+  'mbappe','mbappé','ronaldo','messi','neymar','haaland','salah','kane',
+  'vinicius','vini','benzema','modric','de bruyne','pedri','bellingham',
+  'pulisic','reyna','weah','turner','dest','musah','ferreira','aaronson',
+  'saka','rashford','sterling','griezmann','giroud','lewandowski'
+];
+
+const KNOWN_COUNTRIES = [
+  'usa','usmnt','united states','america','american',
+  'france','brazil','argentina','england','germany','spain','portugal',
+  'netherlands','italy','mexico','japan','south korea','morocco',
+  'australia','canada','senegal','croatia','belgium','uruguay'
+];
+
+const TOPIC_AMAZON_MAP = [
+  { keywords: ['red card', 'ejected', 'sent off', 'violent conduct'], search: 'soccer referee red card set', label: 'Soccer referee gear on Amazon' },
+  { keywords: ['yellow card', 'caution', 'booked'], search: 'soccer referee whistle kit', label: 'Soccer ref gear on Amazon' },
+  { keywords: ['goalkeeper', 'goalie', 'keeper', 'penalty save', 'shootout'], search: 'soccer goalkeeper gloves', label: 'Goalkeeper gloves on Amazon' },
+  { keywords: ['penalty', 'penalty kick', 'pk', 'spot kick'], search: 'soccer training penalty kick net', label: 'Soccer training gear on Amazon' },
+  { keywords: ['offside', 'offsides'], search: 'soccer tactics board game', label: 'Soccer strategy games on Amazon' },
+  { keywords: ['var', 'video assistant', 'instant replay', 'reviewed'], search: 'soccer fan gear funny VAR', label: 'Soccer fan merch on Amazon' },
+  { keywords: ['fake injury', 'diving', 'simulation', 'flopping'], search: 'soccer funny fan tshirt', label: 'Soccer fan shirts on Amazon' },
+  { keywords: ['free kick', 'free-kick', 'wall'], search: 'soccer free kick training equipment', label: 'Soccer training gear on Amazon' },
+  { keywords: ['header', 'heading'], search: 'soccer heading training ball', label: 'Soccer training gear on Amazon' },
+  { keywords: ['corner kick', 'corner'], search: 'soccer corner flag set', label: 'Soccer gear on Amazon' },
+  { keywords: ['stoppage time', 'injury time', 'added time', 'extra time'], search: 'soccer fan scarf world cup 2026', label: 'World Cup fan scarves on Amazon' },
+  { keywords: ['group stage', 'group standings', 'points table'], search: 'world cup 2026 wall chart poster', label: 'World Cup wall charts on Amazon' },
+  { keywords: ['substitution', 'sub ', 'substituted'], search: 'soccer jersey world cup 2026', label: 'Soccer jerseys on Amazon' },
+  { keywords: ['captain', 'armband', 'captaincy'], search: 'soccer captain armband', label: 'Captain armbands on Amazon' },
+  { keywords: ['boot', 'cleats', 'soccer shoe'], search: 'soccer cleats men 2026', label: 'Soccer cleats on Amazon' },
+  { keywords: ['watch', 'stream', 'broadcast', 'tv channel'], search: 'world cup 2026 fan bundle tv', label: 'World Cup fan gear on Amazon' },
+  { keywords: ['ticket', 'attend', 'stadium', 'venue'], search: 'world cup 2026 fan kit bag', label: 'World Cup stadium gear on Amazon' },
+];
+
+function detectAffiliateType(question) {
+  const q = question.toLowerCase();
+  if (q.includes('watch') || q.includes('stream') || q.includes('channel') ||
+      q.includes('tv') || q.includes('broadcast') || q.includes('live') ||
+      q.includes('where can i see') || q.includes('how do i see') ||
+      q.includes('where to watch') || q.includes('cable') || q.includes('app')) return 'watch';
+  if (q.includes('ticket') || q.includes('attend') || q.includes('stadium') ||
+      q.includes('in person') || q.includes('go to a game') || q.includes('see it live') ||
+      q.includes('venue') || q.includes('seats') || q.includes('buy tickets')) return 'tickets';
+  if (q.includes('jersey') || q.includes('kit') || q.includes('shirt') || q.includes('uniform')) return 'jersey';
+  // Player or country mention = jersey type for Fanatics
+  const ql = question.toLowerCase();
+  for (const p of KNOWN_PLAYERS) { if (ql.includes(p)) return 'jersey'; }
+  for (const c of KNOWN_COUNTRIES) { if (ql.includes(c)) return 'jersey'; }
+  return 'general';
+}
+
+function buildAmazonUrl(question) {
+  const q = question.toLowerCase();
+  for (const player of KNOWN_PLAYERS) {
+    if (q.includes(player)) {
+      const name = player === 'mbappe' || player === 'mbappé' ? 'Mbappe' :
+                   player.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return `https://www.amazon.com/s?k=${encodeURIComponent(name + ' soccer jersey')}&tag=${AMAZON_TAG}`;
+    }
+  }
+  for (const country of KNOWN_COUNTRIES) {
+    if (q.includes(country)) {
+      const display = country === 'usa' || country === 'usmnt' || country === 'united states' || country === 'america' || country === 'american'
+        ? 'USMNT' : country.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return `https://www.amazon.com/s?k=${encodeURIComponent(display + ' World Cup jersey 2026')}&tag=${AMAZON_TAG}`;
+    }
+  }
+  for (const topic of TOPIC_AMAZON_MAP) {
+    if (topic.keywords.some(kw => q.includes(kw))) {
+      return `https://www.amazon.com/s?k=${encodeURIComponent(topic.search)}&tag=${AMAZON_TAG}`;
+    }
+  }
+  if (q.includes('jersey') || q.includes('kit') || q.includes('shirt')) {
+    return `https://www.amazon.com/s?k=world+cup+2026+jersey&tag=${AMAZON_TAG}`;
+  }
+  return `https://www.amazon.com/s?k=world+cup+2026+merchandise&tag=${AMAZON_TAG}`;
+}
+
+function buildFanaticsLabel(question) {
+  const q = question.toLowerCase();
+  for (const player of KNOWN_PLAYERS) {
+    if (q.includes(player)) {
+      const name = player === 'mbappe' || player === 'mbappé' ? 'Mbappe' :
+                   player.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { title: `Shop official ${name} gear`, sub: 'Licensed jerseys and merch at Fanatics.' };
+    }
+  }
+  for (const country of KNOWN_COUNTRIES) {
+    if (q.includes(country)) {
+      const display = country === 'usa' || country === 'usmnt' || country === 'united states' || country === 'america' || country === 'american'
+        ? 'USMNT' : country.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { title: `Shop official ${display} jerseys`, sub: 'Licensed gear at Fanatics — the official sports retailer.' };
+    }
+  }
+  return { title: 'Shop official World Cup jerseys', sub: 'Licensed gear at Fanatics — the official sports retailer.' };
+}
+
+function buildAffiliateLabel(question) {
+  const q = question.toLowerCase();
+  for (const player of KNOWN_PLAYERS) {
+    if (q.includes(player)) {
+      const name = player === 'mbappe' || player === 'mbappé' ? 'Mbappe' :
+                   player.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { title: `Shop ${name} gear on Amazon`, sub: 'Jerseys, shirts and more — ships fast.' };
+    }
+  }
+  for (const country of KNOWN_COUNTRIES) {
+    if (q.includes(country)) {
+      const display = country === 'usa' || country === 'usmnt' || country === 'united states' || country === 'america' || country === 'american'
+        ? 'USMNT' : country.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { title: `Shop ${display} merch on Amazon`, sub: 'Jerseys, scarves, flags — ships fast.' };
+    }
+  }
+  for (const topic of TOPIC_AMAZON_MAP) {
+    if (topic.keywords.some(kw => q.includes(kw))) {
+      return { title: topic.label, sub: 'Ships fast from Amazon.' };
+    }
+  }
+  return { title: 'Shop World Cup merchandise', sub: 'Scarves, balls, flags and more on Amazon.' };
 }
 
 function getAffiliateCard(type, question) {
   const amazonUrl = buildAmazonUrl(question || '');
   const amazonLabel = buildAffiliateLabel(question || '');
+  const fanaticsLabel = buildFanaticsLabel(question || '');
+
   const cards = {
     watch: {
       icon: '📺',
       title: 'Shop World Cup gear while you watch',
       sub: 'Jerseys, scarves, flags and more on Amazon.',
       cta: 'Shop Amazon',
-      url: 'https://www.amazon.com/s?k=world+cup+2026+merchandise&tag=whyishecrying-20'
+      url: `https://www.amazon.com/s?k=world+cup+2026+merchandise&tag=${AMAZON_TAG}`
     },
+    // ── FANATICS for jersey/player/country questions ──
     jersey: {
       icon: '👕',
-      title: amazonLabel.title,
-      sub: amazonLabel.sub,
-      cta: 'Shop on Amazon',
-      url: amazonUrl
+      title: fanaticsLabel.title,
+      sub: fanaticsLabel.sub,
+      cta: 'Shop Fanatics',
+      url: FANATICS_URL
     },
     tickets: {
       icon: '🎟️',
       title: 'Get tickets to a World Cup match',
       sub: 'StubHub — the largest secondary ticket marketplace.',
       cta: 'Find Tickets',
-      url: 'https://www.stubhub.com/world-cup-tickets/?COUPON=YOUR_STUBHUB_ID'
+      url: 'https://www.stubhub.com/world-cup-tickets/'
     },
     general: {
       icon: '⚽',
@@ -2090,6 +1414,7 @@ function getAffiliateCard(type, question) {
       url: amazonUrl
     }
   };
+
   const card = cards[type] || cards.general;
   return `
     <a class="affiliate-card" href="${card.url}" target="_blank" rel="noopener sponsored">
@@ -2143,123 +1468,6 @@ function removeTypingIndicator() {
   if (el) el.remove();
 }
 
-// Known players for smart Amazon search
-const KNOWN_PLAYERS = [
-  'mbappe','mbappé','ronaldo','messi','neymar','haaland','salah','kane',
-  'vinicius','vini','benzema','modric','de bruyne','pedri','bellingham',
-  'pulisic','reyna','weah','turner','dest','musah','ferreira','aaronson',
-  'saka','rashford','sterling','griezmann','giroud','lewandowski'
-];
-
-// Known countries for smart Amazon search
-const KNOWN_COUNTRIES = [
-  'usa','usmnt','united states','america','american',
-  'france','brazil','argentina','england','germany','spain','portugal',
-  'netherlands','italy','mexico','japan','south korea','morocco',
-  'australia','canada','senegal','croatia','belgium','uruguay'
-];
-
-function detectAffiliateType(question) {
-  const q = question.toLowerCase();
-  // Watch/stream triggers
-  if (q.includes('watch') || q.includes('stream') || q.includes('channel') ||
-      q.includes('tv') || q.includes('broadcast') || q.includes('live') ||
-      q.includes('where can i see') || q.includes('how do i see') ||
-      q.includes('where to watch') || q.includes('cable') || q.includes('app')) return 'watch';
-  // Ticket triggers
-  if (q.includes('ticket') || q.includes('attend') || q.includes('stadium') ||
-      q.includes('in person') || q.includes('go to a game') || q.includes('see it live') ||
-      q.includes('venue') || q.includes('seats') || q.includes('buy tickets')) return 'tickets';
-  // Jersey triggers
-  if (q.includes('jersey') || q.includes('kit') || q.includes('shirt') || q.includes('uniform')) return 'jersey';
-  return 'general';
-}
-
-// Topic-to-Amazon keyword mapping
-const TOPIC_AMAZON_MAP = [
-  { keywords: ['red card', 'ejected', 'sent off', 'violent conduct'], search: 'soccer referee red card set', label: 'Soccer referee gear on Amazon' },
-  { keywords: ['yellow card', 'caution', 'booked'], search: 'soccer referee whistle kit', label: 'Soccer ref gear on Amazon' },
-  { keywords: ['goalkeeper', 'goalie', 'keeper', 'penalty save', 'shootout'], search: 'soccer goalkeeper gloves', label: 'Goalkeeper gloves on Amazon' },
-  { keywords: ['penalty', 'penalty kick', 'pk', 'spot kick'], search: 'soccer training penalty kick net', label: 'Soccer training gear on Amazon' },
-  { keywords: ['offside', 'offsides'], search: 'soccer tactics board game', label: 'Soccer strategy games on Amazon' },
-  { keywords: ['var', 'video assistant', 'instant replay', 'reviewed'], search: 'soccer fan gear funny VAR', label: 'Soccer fan merch on Amazon' },
-  { keywords: ['fake injury', 'diving', 'simulation', 'flopping'], search: 'soccer funny fan tshirt', label: 'Soccer fan shirts on Amazon' },
-  { keywords: ['free kick', 'free-kick', 'wall'], search: 'soccer free kick training equipment', label: 'Soccer training gear on Amazon' },
-  { keywords: ['header', 'heading'], search: 'soccer heading training ball', label: 'Soccer training gear on Amazon' },
-  { keywords: ['corner kick', 'corner'], search: 'soccer corner flag set', label: 'Soccer gear on Amazon' },
-  { keywords: ['stoppage time', 'injury time', 'added time', 'extra time'], search: 'soccer fan scarf world cup 2026', label: 'World Cup fan scarves on Amazon' },
-  { keywords: ['group stage', 'group standings', 'points table'], search: 'world cup 2026 wall chart poster', label: 'World Cup wall charts on Amazon' },
-  { keywords: ['substitution', 'sub ', 'substituted'], search: 'soccer jersey world cup 2026', label: 'Soccer jerseys on Amazon' },
-  { keywords: ['captain', 'armband', 'captaincy'], search: 'soccer captain armband', label: 'Captain armbands on Amazon' },
-  { keywords: ['boot', 'cleats', 'soccer shoe'], search: 'soccer cleats men 2026', label: 'Soccer cleats on Amazon' },
-  { keywords: ['watch', 'stream', 'broadcast', 'tv channel'], search: 'world cup 2026 fan bundle tv', label: 'World Cup fan gear on Amazon' },
-  { keywords: ['ticket', 'attend', 'stadium', 'venue'], search: 'world cup 2026 fan kit bag', label: 'World Cup stadium gear on Amazon' },
-];
-
-function buildAmazonUrl(question) {
-  const q = question.toLowerCase();
-  const tag = 'whyishecrying-20';
-
-  // Player match first
-  for (const player of KNOWN_PLAYERS) {
-    if (q.includes(player)) {
-      const name = player === 'mbappe' || player === 'mbappé' ? 'Mbappe' :
-                   player.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      return `https://www.amazon.com/s?k=${encodeURIComponent(name + ' soccer jersey')}&tag=${tag}`;
-    }
-  }
-
-  // Country match
-  for (const country of KNOWN_COUNTRIES) {
-    if (q.includes(country)) {
-      const display = country === 'usa' || country === 'usmnt' || country === 'united states' || country === 'america' || country === 'american'
-        ? 'USMNT' : country.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      return `https://www.amazon.com/s?k=${encodeURIComponent(display + ' World Cup jersey 2026')}&tag=${tag}`;
-    }
-  }
-
-  // Topic match
-  for (const topic of TOPIC_AMAZON_MAP) {
-    if (topic.keywords.some(kw => q.includes(kw))) {
-      return `https://www.amazon.com/s?k=${encodeURIComponent(topic.search)}&tag=${tag}`;
-    }
-  }
-
-  if (q.includes('jersey') || q.includes('kit') || q.includes('shirt')) {
-    return `https://www.amazon.com/s?k=world+cup+2026+jersey&tag=${tag}`;
-  }
-
-  return `https://www.amazon.com/s?k=world+cup+2026+merchandise&tag=${tag}`;
-}
-
-function buildAffiliateLabel(question) {
-  const q = question.toLowerCase();
-
-  for (const player of KNOWN_PLAYERS) {
-    if (q.includes(player)) {
-      const name = player === 'mbappe' || player === 'mbappé' ? 'Mbappe' :
-                   player.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      return { title: `Shop ${name} gear on Amazon`, sub: `Jerseys, shirts and more — ships fast.` };
-    }
-  }
-
-  for (const country of KNOWN_COUNTRIES) {
-    if (q.includes(country)) {
-      const display = country === 'usa' || country === 'usmnt' || country === 'united states' || country === 'america' || country === 'american'
-        ? 'USMNT' : country.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      return { title: `Shop ${display} merch on Amazon`, sub: `Jerseys, scarves, flags — ships fast.` };
-    }
-  }
-
-  for (const topic of TOPIC_AMAZON_MAP) {
-    if (topic.keywords.some(kw => q.includes(kw))) {
-      return { title: topic.label, sub: 'Ships fast from Amazon.' };
-    }
-  }
-
-  return { title: 'Shop World Cup merchandise', sub: 'Scarves, balls, flags and more on Amazon.' };
-}
-
 async function sendMessage() {
   const input = document.getElementById('chatInput');
   const question = input.value.trim();
@@ -2277,12 +1485,10 @@ async function sendMessage() {
     let answer, affiliateType;
 
     if (cached) {
-      // Cached answers are always free -- no limit check
       await new Promise(r => setTimeout(r, 600));
       answer = cached.answer;
       affiliateType = cached.affiliate;
     } else {
-      // Only live API calls count against the limit
       questionsUsed++;
       localStorage.setItem('whyishecrying_q', questionsUsed);
       const remaining = Math.max(0, MAX_QUESTIONS - questionsUsed);
@@ -2310,15 +1516,12 @@ async function sendMessage() {
     document.getElementById('questionsLeft').textContent = MAX_QUESTIONS - questionsUsed;
   }
 
-  // Show share prompt at threshold
   if (questionsUsed === SHARE_THRESHOLD) {
     document.getElementById('sharePrompt').style.display = 'block';
   }
-  // Show kofi prompt at threshold
   if (questionsUsed === KOFI_THRESHOLD) {
     document.getElementById('kofiPrompt').style.display = 'block';
   }
-  // Update counter
   const remaining = Math.max(0, MAX_QUESTIONS - questionsUsed);
   document.getElementById('questionsLeft').textContent = remaining;
   document.getElementById('sendBtn').disabled = false;
@@ -2330,56 +1533,6 @@ function handleContactSubmit(e) {
   e.target.reset();
 }
 
-// ── HERO INPUT ──
-const heroInput = document.getElementById('heroInput');
-const heroPlaceholder = document.getElementById('heroPlaceholder');
-
-if (heroInput) {
-  heroInput.addEventListener('focus', function() {
-    if (heroPlaceholder) heroPlaceholder.style.opacity = '0';
-  });
-
-  heroInput.addEventListener('blur', function() {
-    if (!this.value) {
-      if (heroPlaceholder) heroPlaceholder.style.opacity = '1';
-    }
-  });
-
-  heroInput.addEventListener('input', function() {
-    if (heroPlaceholder) heroPlaceholder.style.opacity = this.value ? '0' : '1';
-  });
-}
-
-function autoResizeHero(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-function handleHeroKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendFromHero();
-  }
-}
-
-function sendFromHero() {
-  const heroInput = document.getElementById('heroInput');
-  const question = heroInput ? heroInput.value.trim() : '';
-  if (!question) return;
-  // Copy to main chat input and send
-  const chatInput = document.getElementById('chatInput');
-  if (chatInput) chatInput.value = question;
-  heroInput.value = '';
-  if (heroPlaceholder) heroPlaceholder.style.opacity = '1';
-  // Make sure chat page is active
-  showPage('chat', document.querySelector('#bottom-nav a'));
-  // Scroll to chat
-  const chatWindow = document.getElementById('chatMessages');
-  if (chatWindow) chatWindow.scrollIntoView({ behavior: 'smooth' });
-  sendMessage();
-}
-
-
 function dismissSharePrompt() {
   document.getElementById('sharePrompt').style.display = 'none';
 }
@@ -2388,9 +1541,7 @@ function dismissKofiPrompt() {
   document.getElementById('kofiPrompt').style.display = 'none';
 }
 
-
 function showScores(linkEl) {
-  // On mobile, show the scores sidebar and hide chat content
   document.querySelectorAll('#bottom-nav a').forEach(a => a.classList.remove('active'));
   linkEl.classList.add('active');
   const sidebar = document.getElementById('scoresSidebar');
@@ -2402,16 +1553,17 @@ function showScores(linkEl) {
   window.scrollTo(0, 0);
 }
 
-// When switching back to chat page, restore chat column
-const origShowPage = showPage;
 function showPage(pageId, linkEl) {
   const chatCol = document.querySelector('.chat-column');
   const sidebar = document.getElementById('scoresSidebar');
   if (chatCol) chatCol.style.display = '';
   if (sidebar) sidebar.classList.remove('active');
-  origShowPage(pageId, linkEl);
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  if (linkEl) linkEl.classList.add('active');
+  window.scrollTo(0, 0);
 }
-
 
 // ── SCORES WIDGET ──
 const COUNTRY_FLAGS = {
@@ -2436,14 +1588,11 @@ const COUNTRY_FLAGS = {
   'Haiti': '🇭🇹', 'Cuba': '🇨🇺', 'Trinidad and Tobago': '🇹🇹'
 };
 
-function getFlag(name) {
-  return COUNTRY_FLAGS[name] || '🏳️';
-}
+function getFlag(name) { return COUNTRY_FLAGS[name] || '🏳️'; }
 
 function getAmazonUrl(teamName) {
-  const tag = 'whyishecrying-20';
   const search = teamName === 'United States' ? 'USMNT World Cup jersey 2026' : teamName + ' World Cup jersey 2026';
-  return `https://www.amazon.com/s?k=${encodeURIComponent(search)}&tag=${tag}`;
+  return `https://www.amazon.com/s?k=${encodeURIComponent(search)}&tag=${AMAZON_TAG}`;
 }
 
 function formatDate(dateStr) {
@@ -2461,9 +1610,7 @@ async function loadScores(type) {
     renderScores(type, scoresCache[type]);
     return;
   }
-
   document.getElementById('scoresContent').innerHTML = '<div class="scores-loading">Loading...</div>';
-
   try {
     const res = await fetch(`/api/scores?type=${type}`);
     if (!res.ok) throw new Error('failed');
@@ -2485,13 +1632,10 @@ function renderScores(type, data) {
       container.innerHTML = '<div class="scores-loading">No fixtures available yet.</div>';
       return;
     }
-
-    // Show next 20 matches + any live/today
     const now = new Date();
     const matches = data.matches
       .filter(m => new Date(m.utcDate) >= new Date(now - 24 * 60 * 60 * 1000))
       .slice(0, 25);
-
     let html = '';
     matches.forEach(m => {
       const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
@@ -2502,7 +1646,6 @@ function renderScores(type, data) {
       const awayScore = m.score.fullTime.away ?? (isLive ? m.score.halfTime.away ?? '0' : '-');
       const scoreDisplay = isFinished || isLive ? `${homeScore} - ${awayScore}` : 'vs';
       const group = m.group ? m.group.replace('GROUP_', 'Group ') : '';
-
       html += `
         <div class="fixture-item">
           <div class="fixture-date">${isLive ? '🔴 LIVE' : formatDate(m.utcDate)}</div>
@@ -2521,14 +1664,11 @@ function renderScores(type, data) {
         </div>`;
     });
     container.innerHTML = html;
-
   } else {
-    // Standings
     if (!data.standings || data.standings.length === 0) {
       container.innerHTML = '<div class="scores-loading">Standings will appear once the tournament begins.</div>';
       return;
     }
-
     let html = '';
     data.standings.forEach(group => {
       html += `<div class="standing-group">${group.group || 'Group'}</div>`;
@@ -2561,14 +1701,6 @@ function switchScoresTab(type, btn) {
   btn.classList.add('active');
   loadScores(type);
 }
-
-// Load fixtures on page load
-document.addEventListener('DOMContentLoaded', function() {
-  loadScores('fixtures');
-  // Refresh every 60 seconds
-  setInterval(() => loadScores(currentScoresTab), 60000);
-});
-
 </script>
 
 </body>
