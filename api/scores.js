@@ -1,3 +1,16 @@
+async function fetchWithRetry(url, options, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.ok) return res;
+      throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      if (i === retries) throw err;
+      await new Promise(r => setTimeout(r, 500 * (i + 1)));
+    }
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -12,20 +25,17 @@ export default async function handler(req, res) {
 
   try {
     if (type === 'standings') {
-      const response = await fetch(
+      const response = await fetchWithRetry(
         'https://api.football-data.org/v4/competitions/WC/standings',
         { headers: { 'X-Auth-Token': apiKey } }
       );
-      if (!response.ok) throw new Error('API error');
       const data = await response.json();
       return res.status(200).json(data);
     } else {
-      // Fixtures -- get matches
-      const response = await fetch(
+      const response = await fetchWithRetry(
         'https://api.football-data.org/v4/competitions/WC/matches?status=SCHEDULED,LIVE,IN_PLAY,PAUSED,FINISHED',
         { headers: { 'X-Auth-Token': apiKey } }
       );
-      if (!response.ok) throw new Error('API error');
       const data = await response.json();
       return res.status(200).json(data);
     }
